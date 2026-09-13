@@ -1,0 +1,317 @@
+/* به نام خداوند بخشنده مهربان */
+
+document.addEventListener('DOMContentLoaded', () => {
+  // ارجاع‌ها
+  const body = document.body;
+  const panel = document.getElementById('gateway-panel');
+  const headerTrigger = document.getElementById('gateway-trigger');
+  const container = document.getElementById('cards-container');
+  const viewButtons = document.querySelectorAll('.view-switcher button');
+  const modeButtons = document.querySelectorAll('.day-night-switcher button');
+  const desktopLeft = document.getElementById('desktop-controls-left');
+  const desktopRight = document.getElementById('desktop-controls-right');
+  const mobileControls = document.getElementById('mobile-controls');
+  const logoRainBox = document.getElementById('logo-rain');
+
+  setView(localStorage.getItem('cardViewMode') || 'small');
+  setMode(localStorage.getItem('dayNightMode') || 'day');
+  hideControls();
+
+  let isExpanded=false, isAnimating=false;
+
+  // ——— افکت «بارش لطیف» لوگو SVG (کم‌مصرف، احترام به کاهش حرکت) ———
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  class LogoRain {
+    constructor(container){
+      this.box = container;
+      this.timer = null;
+      this.maxNodes = 60;
+      this.spawnEvery = 260; // ms
+      this.batchSize = 3;
+      this.active = false;
+    }
+    positionToButton(){
+      try{
+        const r = headerTrigger.getBoundingClientRect();
+        const top = Math.max(0, r.bottom + 8);
+        // جایگذاری از زیر دکمه تا پایین
+        this.box.style.top = `${top}px`;
+        this.box.style.left = '0px';
+        this.box.style.right = '0px';
+        this.box.style.bottom = '0px';
+      }catch{}
+    }
+    dropOne(){
+      if (!this.box) return;
+      const d = document.createElement('i');
+      d.className = 'logo-drop';
+      // قرارگیری افقی تصادفی (در سراسر عرض صفحه)
+      const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+      const left = Math.floor(Math.random() * vw);
+      d.style.left = `${left}px`;
+      // پارامترهای حرکت
+      const dur = 6.5 + Math.random()*2.4;         // 6.5..8.9s
+      const delay = Math.random()*0.8;             // 0..0.8s
+      const travel = 0.40 + Math.random()*0.22;    // 40%..62% ارتفاع
+      d.style.setProperty('--dur', `${dur}s`);
+      d.style.setProperty('--delay', `${delay}s`);
+      d.style.setProperty('--travel', `${Math.round(travel*100)}vh`);
+      d.addEventListener('animationend', () => d.remove());
+      this.box.appendChild(d);
+      // محدودیت تعداد نودها برای پرفورمنس
+      const nodes = this.box.querySelectorAll('.logo-drop');
+      if (nodes.length > this.maxNodes){
+        const extra = nodes.length - this.maxNodes;
+        for (let i=0; i<extra; i++) nodes[i].remove();
+      }
+    }
+    start(){
+      if (this.active || prefersReduced) return;
+      this.active = true;
+      this.positionToButton();
+      window.addEventListener('resize', this._onResize, { passive:true });
+      this.timer = setInterval(() => {
+        for (let i=0; i<this.batchSize; i++) this.dropOne();
+      }, this.spawnEvery);
+    }
+    stop(){
+      if (!this.active) return;
+      this.active = false;
+      window.removeEventListener('resize', this._onResize);
+      if (this.timer){ clearInterval(this.timer); this.timer = null; }
+      // محو سریع بدون تداخل کلیک‌ها
+      this.box.querySelectorAll('.logo-drop').forEach(n => n.style.opacity='0');
+      setTimeout(() => { this.box.innerHTML=''; }, 900);
+    }
+    _onResize = () => this.positionToButton();
+  }
+  const rain = new LogoRain(logoRainBox);
+
+  // ——— چرخه باز/بسته پنل کارت‌ها + کنترل افکت‌ها ———
+  headerTrigger?.addEventListener('click', (e) => {
+    e.preventDefault();
+    clearTimeout(autoOpenTimer);
+    if (isAnimating) return;
+    isExpanded ? collapsePanel() : expandPanel();
+  });
+
+  function sortTopThenRight(wraps){
+    return wraps
+      .map(w => ({ w, c:w.querySelector('.card'), rect:w.getBoundingClientRect() }))
+      .sort((a,b) => (a.rect.top - b.rect.top) || (b.rect.left - a.rect.left));
+  }
+
+  function activateTease(){
+    body.classList.add('tease-active');       // درخشش دکمه
+    if (!prefersReduced) rain.start();        // بارش لوگو
+  }
+  function deactivateTease(){
+    body.classList.remove('tease-active');
+    rain.stop();
+  }
+
+  // حالت آغازین: پنل بسته → افکت‌های دعوت فعال
+  activateTease();
+
+  // ——— باز شدن خودکار پنل پس از ۳ ثانیه در صورت عدم تعامل کاربر ———
+  const AUTO_OPEN_DELAY = 3000; // ms
+  const autoOpenTimer = setTimeout(() => {
+    if (!isExpanded && !isAnimating) expandPanel();
+  }, AUTO_OPEN_DELAY);
+
+  function expandPanel(){
+    isAnimating = true; isExpanded = true;
+    headerTrigger?.setAttribute('aria-expanded','true');
+    panel?.classList.remove('collapsed'); panel?.classList.add('expanded');
+    body.classList.add('panel-opened');   // راهنمای کلیک محو شود
+    setCardsFocusable(true);
+
+    // شروع بازشدن: افکت‌ها خاموش شوند
+    deactivateTease();
+
+    const wraps = Array.from(document.querySelectorAll('.card-wrap'));
+    const ordered = sortTopThenRight(wraps);
+    ordered.forEach(({w,c},i) => {
+      setTimeout(() => { c?.classList.add('visible'); w?.classList.add('card-ready'); }, i*120);
+    });
+    const total = ordered.length*120 + 550;
+    setTimeout(() => {
+      showControls();
+      // پس از اتمام توالی ورود: پس‌زمینه فعال شود
+      body.classList.add('bg-revealed');
+      isAnimating = false;
+    }, total);
+  }
+
+  function collapsePanel(){
+    isAnimating = true; isExpanded = false;
+    headerTrigger?.setAttribute('aria-expanded','false');
+    body.classList.remove('panel-opened');   // راهنمای کلیک دوباره نمایش داده شود
+    setCardsFocusable(false);
+
+    // شروع جمع‌شدن: پس‌زمینه خاموش تا مزاحم نباشد
+    body.classList.remove('bg-revealed');
+
+    hideControls();
+    const wraps = Array.from(document.querySelectorAll('.card-wrap'));
+    const ordered = sortTopThenRight(wraps).reverse();
+    ordered.forEach(({w,c},i) => { setTimeout(() => { w?.classList.remove('card-ready'); c?.classList.remove('visible'); }, i*120); });
+    const total = ordered.length*120 + 400;
+    setTimeout(() => {
+      panel?.classList.remove('expanded'); panel?.classList.add('collapsed');
+      // پس از پایان جمع‌شدن: افکت‌های دعوت دوباره فعال شوند
+      activateTease();
+      isAnimating=false;
+    }, total);
+  }
+
+  // ——— منو/لینک کارت‌ها + افکت‌های موجود ———
+  container?.addEventListener('click', (e) => {
+    const card = e.target.closest('.card');
+    if (!card) return;
+
+    // پرواز آرام کبوترها
+    pigeons.burstAt(e.clientX, e.clientY);
+
+    // منوی اختصاصی کارت
+    const menuData = card.getAttribute('data-menu');
+    if (menuData){
+      let items = [];
+      try { items = JSON.parse(menuData); } catch { items = []; }
+      if (!items.length) return;
+      e.stopPropagation();
+      openMenuAt(e, items);
+      return;
+    }
+
+    // لینک مستقیم کارت
+    const url = card.getAttribute('data-url');
+    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+  });
+
+  // ——— دسترس‌پذیری کیبورد کارت‌ها: فوکوس و فعال‌سازی با Enter/Space ———
+  // تا زمانی که پنل بسته است، کارت‌های نامرئی از ترتیب فوکوس خارج می‌مانند
+  function setCardsFocusable(enabled){
+    container?.querySelectorAll('.card').forEach((card) => card.setAttribute('tabindex', enabled ? '0' : '-1'));
+  }
+  container?.querySelectorAll('.card').forEach((card) => {
+    card.setAttribute('tabindex', '-1');
+    card.setAttribute('role', 'button');
+    const alt = card.querySelector('img')?.getAttribute('alt');
+    if (alt) card.setAttribute('aria-label', alt);
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+    });
+  });
+
+  function buildMenu(items){
+    const ul = document.createElement('ul');
+    items.forEach(item => {
+      const li = document.createElement('li');
+      if (item.submenu && Array.isArray(item.submenu) && item.submenu.length){
+        const span = document.createElement('span'); span.textContent = item.title;
+        span.addEventListener('click', (e) => {
+          e.stopPropagation();
+          ul.querySelectorAll('li.expanded').forEach(o => { if (o !== li) o.classList.remove('expanded'); });
+          li.classList.toggle('expanded');
+        });
+        li.appendChild(span);
+        li.appendChild(buildMenu(item.submenu));
+      } else {
+        const a = document.createElement('a');
+        a.href = item.url || '#'; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = item.title;
+        li.appendChild(a);
+      }
+      ul.appendChild(li);
+    });
+    return ul;
+  }
+
+  function openMenuAt(e, items){
+    closeMenus();
+    const menu = document.createElement('div');
+    menu.className = 'dropdown-menu';
+    menu.appendChild(buildMenu(items));
+    menu.addEventListener('pointerdown', ev => ev.stopPropagation());
+    document.body.appendChild(menu);
+    const r = menu.getBoundingClientRect();
+    let left = e.clientX - r.width/2, top = e.clientY;
+    if (left < 8) left = 8;
+    if (left + r.width > innerWidth - 8) left = innerWidth - r.width - 8;
+    if (top + r.height > innerHeight - 8) top = innerHeight - r.height - 8;
+    if (top < 8) top = 8;
+    menu.style.left = left + 'px';
+    menu.style.top  = top  + 'px';
+    requestAnimationFrame(() => menu.classList.add('show'));
+  }
+
+  function closeMenus(){ document.querySelectorAll('.dropdown-menu').forEach(m => m.remove()); }
+  document.addEventListener('pointerdown', (ev) => { if (!ev.target.closest('.dropdown-menu')) closeMenus(); }, true);
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeMenus(); });
+  window.addEventListener('resize', closeMenus);
+
+  // Tooltip
+  const tip = document.createElement('div'); tip.className = 'tooltip-pop'; document.body.appendChild(tip);
+  function placeTooltip(el){
+    const text = el.getAttribute('data-tooltip'); if (!text) return;
+    tip.textContent = text;
+    tip.style.left = '-9999px'; tip.style.top = '-9999px';
+    tip.classList.add('show');
+    const r = el.getBoundingClientRect(), pad = 10, desktop = window.matchMedia('(min-width:651px)').matches;
+    const tw = tip.offsetWidth, th = tip.offsetHeight; let tx, ty;
+    if (!desktop) { tx = r.left + (r.width - tw)/2; ty = r.top - th - pad; if (ty < 8) ty = r.bottom + pad; }
+    else {
+      const inLeft = !!el.closest('#desktop-controls-left');
+      const preferRight = inLeft || (r.left < innerWidth/2);
+      if (preferRight){ tx = r.right + pad; ty = r.top + (r.height - th)/2; if (tx + tw > innerWidth - 8) tx = innerWidth - tw - 8; }
+      else { tx = r.left - tw - pad; ty = r.top + (r.height - th)/2; if (tx < 8) tx = 8; }
+      if (ty < 8) ty = 8; if (ty + th > innerHeight - 8) ty = innerHeight - th - 8;
+    }
+    tx = Math.max(8, Math.min(tx, innerWidth - tw - 8));
+    tip.style.left = `${tx}px`; tip.style.top = `${ty}px`;
+  }
+  function hideTooltip(){ tip.classList.remove('show'); }
+  function bindTooltips(){
+    document.querySelectorAll('[data-tooltip]').forEach(el => {
+      el.addEventListener('mouseenter', () => placeTooltip(el));
+      el.addEventListener('mouseleave', hideTooltip);
+      el.addEventListener('focusin',  () => placeTooltip(el));
+      el.addEventListener('focusout', hideTooltip);
+      el.addEventListener('touchstart', () => { placeTooltip(el); setTimeout(hideTooltip,1200); }, { passive:true });
+    });
+    window.addEventListener('resize', hideTooltip);
+  }
+
+  function setView(view){
+    container.classList.remove('view-small','view-big');
+    container.classList.add(view === 'big' ? 'view-big' : 'view-small');
+    viewButtons.forEach(btn => {
+      const active = btn.dataset.view === view;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', String(active));
+    });
+    localStorage.setItem('cardViewMode', view);
+  }
+  viewButtons.forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+
+  function setMode(mode){
+    body.classList.toggle('night-mode', mode === 'night');
+    modeButtons.forEach(btn => {
+      const active = btn.dataset.mode === mode;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', String(active));
+    });
+    localStorage.setItem('dayNightMode', mode);
+  }
+  modeButtons.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
+
+  function showControls(){ desktopLeft?.classList.remove('hide'); desktopRight?.classList.remove('hide'); mobileControls?.classList.remove('hide'); }
+  function hideControls(){ desktopLeft?.classList.add('hide'); desktopRight?.classList.add('hide'); mobileControls?.classList.add('hide'); }
+
+  bindTooltips();
+
+  // ——— کلاس پرواز آرام کبوترها (آرام، پراکنده، بدون سقوط) ———
+  const pigeons = new PigeonGlide();
+});
+
+/* ساخته شده توسط مهدی باغبانپور بروجنی */
