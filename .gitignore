@@ -1,0 +1,7 @@
+# فایل‌های نادیده‌گرفته‌شده — ابزارها و سیستم‌عامل
+.mimosa/
+.v2c/
+.DS_Store
+Thumbs.db
+node_modules/
+.env
