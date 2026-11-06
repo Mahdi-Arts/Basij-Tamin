@@ -1,0 +1,242 @@
+/* به نام خداوند بخشنده مهربان */
+
+@font-face {
+  font-family: Vazirmatn;
+  src: url('fonts/Vazirmatn-Regular.woff2') format('woff2');
+  font-display: swap;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: Vazirmatn;
+  src: url('fonts/Vazirmatn-Bold.woff2') format('woff2');
+  font-display: swap;
+  font-weight: 700 900;
+}
+
+.bt-intent-trigger {
+  appearance: none;
+  border: 1px solid rgba(30, 89, 57, .35);
+  border-radius: 999px;
+  padding: .8rem 1.25rem;
+  color: #fff;
+  background: linear-gradient(135deg, #1e5939, #28744a);
+  box-shadow: 0 10px 24px rgba(30, 89, 57, .2);
+  cursor: pointer;
+  font: 700 1rem/1.5 'Vazirmatn', sans-serif;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+.bt-intent-trigger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(30, 89, 57, .28);
+}
+
+.bt-intent-trigger[aria-expanded="true"] {
+  background: linear-gradient(135deg, #143622, #1e5939);
+}
+
+.bt-intent-trigger:focus-visible,
+.bt-intent-card:focus-visible,
+.bt-intent-menu__option:focus-visible,
+.bt-intent-menu__back:focus-visible {
+  outline: 3px solid #f4c95d;
+  outline-offset: 3px;
+}
+
+.bt-intent-widget,
+.bt-intent-widget * {
+  box-sizing: border-box;
+}
+
+.bt-intent-widget[hidden],
+.bt-intent-widget__cards[hidden],
+.bt-intent-widget__menu[hidden],
+.bt-intent-widget__status[hidden],
+.bt-intent-menu__list[hidden] {
+  display: none !important;
+}
+
+.bt-intent-widget {
+  width: min(100%, 1120px);
+  margin: .85rem auto 0;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  visibility: hidden;
+  border: 1px solid rgba(30, 89, 57, .16);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, .86);
+  box-shadow: 0 18px 48px rgba(30, 89, 57, .16);
+  transform: translateY(-8px);
+  transition: max-height .28s ease, opacity .22s ease, transform .28s ease, visibility .28s ease;
+  color: #173923;
+  direction: rtl;
+  font-family: 'Vazirmatn', Tahoma, sans-serif;
+}
+
+.bt-intent-widget.is-open {
+  max-height: 4200px;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.bt-intent-widget__inner {
+  padding: clamp(1rem, 3vw, 1.75rem);
+}
+
+.bt-intent-widget__status {
+  margin: 0;
+  padding: 1rem;
+  text-align: center;
+  color: #315d3d;
+}
+
+.bt-intent-widget__status.is-error {
+  color: #9b1c31;
+}
+
+.bt-intent-widget__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: clamp(.75rem, 2vw, 1.25rem);
+}
+
+.bt-intent-card {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  aspect-ratio: 1 / .78;
+  overflow: hidden;
+  align-items: end;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, .75);
+  border-radius: 18px;
+  background: #e7f0e8;
+  box-shadow: 0 8px 22px rgba(30, 89, 57, .16);
+  cursor: pointer;
+  isolation: isolate;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.bt-intent-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(30, 89, 57, .25);
+}
+
+.bt-intent-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+.bt-intent-card::after {
+  position: absolute;
+  inset: 30% 0 0;
+  content: '';
+  background: linear-gradient(transparent, rgba(17, 54, 31, .82));
+  z-index: -1;
+}
+
+.bt-intent-card__label {
+  width: calc(100% - 1rem);
+  margin: .5rem;
+  padding: .45rem .6rem;
+  border-radius: 10px;
+  color: #17472a;
+  background: rgba(255, 255, 255, .94);
+  font-size: .88rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.bt-intent-menu {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid rgba(30, 89, 57, .18);
+  border-radius: 18px;
+  background: #f3f8f3;
+}
+
+.bt-intent-menu__heading {
+  margin-bottom: .65rem;
+  color: #1e5939;
+  font-weight: 800;
+}
+
+.bt-intent-menu__back {
+  margin-bottom: .7rem;
+  padding: .45rem .7rem;
+  border: 1px solid rgba(30, 89, 57, .25);
+  border-radius: 9px;
+  color: #1e5939;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: .88rem;
+}
+
+.bt-intent-menu__list {
+  display: grid;
+  gap: .45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bt-intent-menu__list.is-submenu {
+  margin: .45rem 0 0;
+  padding-right: 1rem;
+  border-right: 2px solid rgba(30, 89, 57, .2);
+}
+
+.bt-intent-menu__item {
+  margin: 0;
+}
+
+.bt-intent-menu__option {
+  display: block;
+  width: 100%;
+  padding: .65rem .8rem;
+  border: 1px solid rgba(30, 89, 57, .14);
+  border-radius: 10px;
+  color: #173923;
+  background: #fff;
+  font: inherit;
+  font-size: .92rem;
+  font-weight: 700;
+  text-align: right;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.bt-intent-menu__option:hover,
+.bt-intent-menu__item.is-expanded > .bt-intent-menu__option {
+  border-color: rgba(30, 89, 57, .38);
+  background: #e6f2e7;
+}
+
+@media (max-width: 560px) {
+  .bt-intent-widget__cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bt-intent-card__label {
+    font-size: .78rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bt-intent-trigger,
+  .bt-intent-card,
+  .bt-intent-widget {
+    transition: none;
+  }
+}
+
+/* ساخته شده توسط مهدی باغبانپور بروجنی */

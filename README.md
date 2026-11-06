@@ -47,6 +47,7 @@ https://github.com/user-attachments/assets/f1fedb4b-a06b-4a36-ba79-789a6bd989f9
 - [قابلیت‌ها](#قابلیت‌ها)
 - [مسیر کاربر](#مسیر-کاربر)
 - [دموی زنده](#دموی-زنده)
+- [درج در سایت سازمان](#درج-در-سایت-سازمان)
 - [تصاویر صفحات](#تصاویر-صفحات)
 - [وضعیت پرداخت](#وضعیت-پرداخت)
 - [راه‌اندازی محلی](#راه‌اندازی-محلی)
@@ -123,6 +124,23 @@ https://github.com/user-attachments/assets/f1fedb4b-a06b-4a36-ba79-789a6bd989f9
 
 - [صفحهٔ انتخاب نیت‌ها](https://mahdi-arts.github.io/Basij-Tamin/cards-form.html)
 - [فرم پرداخت](https://mahdi-arts.github.io/Basij-Tamin/payment-form.html)
+
+## درج در سایت سازمان
+
+`index.html` و `cards-form.html` برای نمایش کامل دمو باقی می‌مانند. در صفحهٔ اصلی سازمان، فقط یک دکمه و اسکریپت زیر را درج کنید؛ ویجت کارت‌ها را مستقیماً زیر همان دکمه می‌سازد و با کلیک دوباره جمع می‌کند:
+
+```html
+<button type="button" data-basij-intents>🎯 نمایش نیات خیر</button>
+<script
+  src="https://mahdi-arts.github.io/Basij-Tamin/intent-widget.js?v=7.0.1"
+  data-payment-url="https://mahdi-arts.github.io/Basij-Tamin/payment-form.html"
+  defer>
+</script>
+```
+
+کارت‌ها و منوهای چندسطحی با `Tab`، کلیدهای جهت، `Home`، `End` و `Escape` قابل استفاده‌اند. انتخاب نیت برگ نهایی در همان زبانه به `payment-form.html` منتقل می‌شود. برای اتصال به مسیر پرداخت سایت سازمان، فقط مقدار `data-payment-url` را به نشانی صفحهٔ پرداخت سازمان تغییر دهید؛ منبع نیت‌ها و دارایی‌های تصویری از همین نسخه خوانده می‌شوند.
+
+برای مشاهدهٔ نمونهٔ صفحهٔ سازمان با همین روش، [نمونهٔ درج ویجت](https://mahdi-arts.github.io/Basij-Tamin/embed-demo.html) را باز کنید.
 
 ## تصاویر صفحات
 
@@ -265,6 +283,9 @@ Basij-Tamin/
 ├── payment-scripts.js         # منطق فرم، state و ارسال پرداخت
 ├── cards-styles.css           # استایل صفحهٔ کارت‌ها
 ├── payment-styles.css         # استایل فرم و مودال
+├── intent-widget.js            # ویجت قابل درج در سایت سازمان
+├── intent-widget.css           # استایل مستقل ویجت سازمانی
+├── embed-demo.html             # نمونهٔ صفحهٔ سازمان با یک دکمه
 ├── package.json               # metadata و script راهنما
 ├── src/
 │   ├── css/fonts.css          # فونت‌های مشترک
@@ -333,6 +354,8 @@ git diff --check
 - reset شدن مبلغ و گل هنگام تغییر نیت؛
 - focus trap، Escape، blur و `inert` در مودال؛
 - نبود ارجاع به ابزار تحلیل خارجی و build جعلی؛
+- باز و بسته‌شدن ویجت سازمانی با کلیک و کیبورد؛
+- جابه‌جایی کارت‌ها و منوهای تودرتو با کلیدهای جهت، `Home`، `End` و `Escape`؛
 - بارگذاری موفق صفحات اصلی روی GitHub Pages.
 
 ## امنیت و حریم خصوصی
