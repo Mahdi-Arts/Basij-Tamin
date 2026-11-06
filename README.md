@@ -10,6 +10,14 @@
 </p>
 
 <p>
+  <img src="https://img.shields.io/badge/HTML5-RTL-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5 و راست‌به‌چپ" />
+  <img src="https://img.shields.io/badge/CSS3-responsive-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3 واکنش‌گرا" />
+  <img src="https://img.shields.io/badge/JavaScript-vanilla-F7DF1E?style=for-the-badge&logo=javascript&logoColor=111827" alt="JavaScript بدون فریم‌ورک" />
+  <img src="https://img.shields.io/badge/Persian-UI-1f6f43?style=for-the-badge" alt="رابط فارسی" />
+  <img src="https://img.shields.io/badge/license-MIT-6b7280?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="مجوز MIT" />
+</p>
+
+<p>
   <a href="https://mahdi-arts.github.io/Basij-Tamin/"><img src="https://img.shields.io/badge/GitHub%20Pages-live-1f6f43?style=for-the-badge&logo=githubpages&logoColor=white" alt="دموی زنده روی GitHub Pages" /></a>
   <a href="https://github.com/Mahdi-Arts/Basij-Tamin"><img src="https://img.shields.io/badge/version-7.0.0-0d9488?style=for-the-badge&logo=semanticrelease&logoColor=white" alt="نسخهٔ 7.0.0" /></a>
   <a href="#وضعیت-پرداخت"><img src="https://img.shields.io/badge/payment-demo-cb8a05?style=for-the-badge&logo=shield&logoColor=white" alt="پرداخت در حالت آزمایشی" /></a>
@@ -21,23 +29,12 @@
   <a href="https://github.com/Mahdi-Arts/Basij-Tamin/issues/new">🐛 گزارش خطا</a>
 </p>
 
-<video
-  src="https://raw.githubusercontent.com/Mahdi-Arts/Basij-Tamin/main/docs/videos/demo-flow.mp4"
-  poster="docs/screenshots/payment.png"
-  width="820"
-  controls
-  muted
-  loop
-  playsinline
-  preload="metadata">
-  مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
-</video>
+</div>
 
-<p>
-  <a href="docs/videos/demo-flow.mp4">🎬 مشاهدهٔ ویدیوی کامل مسیر دمو</a><br />
-  <sub>ویدیو با اطلاعات کاملاً فرضی تهیه شده است: 🌿 صفحهٔ آغازین ← 🎯 انتخاب نیت ← 🧾 تکمیل اطلاعات ← 💳 پرداخت آزمایشی</sub>
-</p>
+https://github.com/user-attachments/assets/f1fedb4b-a06b-4a36-ba79-789a6bd989f9
 
+<div dir="rtl" align="center">
+  <sub>ویدیوی مسیر کامل دمو با اطلاعات فرضی: 🌿 ورود ← 🎯 انتخاب نیت ← 🧾 تکمیل اطلاعات ← 💳 پرداخت آزمایشی</sub>
 </div>
 
 ---
@@ -86,12 +83,8 @@
 | دموی زنده | فعال روی GitHub Pages |
 | شاخه و مسیر دپلوی | `main:/` |
 | حالت پرداخت | `demo` |
-| دادهٔ مکانی | ۳۱ استان و ۸۰۸ گزینهٔ شهر |
-| دادهٔ نیت‌ها | ۱۰ کارت و ۴۰ نیت نهایی |
 | تحلیل‌گر خارجی | فعال نیست |
 | ابزار build | وجود ندارد؛ پروژه ایستا است |
-
-تعداد شهرها بر اساس مجموع گزینه‌های موجود در `src/js/data.js` محاسبه شده است. نام‌های یکسان در استان‌های مختلف جداگانه نگه داشته می‌شوند، چون شهر همیشه در کنار استان انتخاب می‌شود.
 
 ## قابلیت‌ها
 
@@ -122,18 +115,11 @@
 
 <https://mahdi-arts.github.io/Basij-Tamin/>
 
-برای بررسی مسیر اصلی:
-
-- وارد دمو شوید و گزینهٔ «ورود به درگاه» را انتخاب کنید.
-- کارت «نذر درمانی» را باز کنید.
-- مسیر «تجهیزات درمان» و سپس «دستگاه دیالیز» را انتخاب کنید.
-- در فرم پرداخت، یک یا چند نیت و مبلغ را انتخاب کنید.
-
 مسیر کوتاه پیشنهادی برای آزمون:
 
 `🌿 ورود به درگاه` → `🎯 نذر درمانی` → `🩺 تجهیزات درمان` → `🧾 دستگاه دیالیز` → `💳 فرم پرداخت`
 
-صفحهٔ کارت‌ها و فرم پرداخت نیز به‌صورت مستقیم در دسترس هستند:
+صفحات مستقیم:
 
 - [صفحهٔ انتخاب نیت‌ها](https://mahdi-arts.github.io/Basij-Tamin/cards-form.html)
 - [فرم پرداخت](https://mahdi-arts.github.io/Basij-Tamin/payment-form.html)
@@ -175,12 +161,6 @@
 
 > [!IMPORTANT]
 > این نسخه برای آزمون رابط کاربری است. فرم به بانک یا درگاه واقعی درخواست ارسال نمی‌کند و پس از نمایش پیام آزمایشی، کاربر به صفحهٔ انتخاب نیت‌ها برمی‌گردد.
-
-دموی زنده برای آزمون رابط کاربری از حالت `demo` استفاده می‌کند. در این حالت:
-
-- اطلاعات فرم به سرویس بانکی ارسال نمی‌شود.
-- پیام موفقیت آزمایشی در مودال نمایش داده می‌شود.
-- دکمهٔ بازگشت، کاربر را به `cards-form.html` می‌برد.
 
 پیکربندی فعلی در `src/js/payment-config.js` قرار دارد:
 
