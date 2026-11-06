@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const body = document.body;
   const panel = document.getElementById('gateway-panel');
   const headerTrigger = document.getElementById('gateway-trigger');
+  const gateHint = document.getElementById('gate-hint');
   const container = document.getElementById('cards-container');
   const viewButtons = document.querySelectorAll('.view-switcher button');
   const modeButtons = document.querySelectorAll('.day-night-switcher button');
@@ -35,9 +36,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setView(localStorage.getItem('cardViewMode') || 'small');
   setMode(localStorage.getItem('dayNightMode') || 'day');
+  if (panel) panel.inert = true;
   hideControls();
 
   let isExpanded=false, isAnimating=false;
+  let activeToggle = headerTrigger;
 
   // ——— افکت «بارش لطیف» لوگو SVG (کم‌مصرف، احترام به کاهش حرکت) ———
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -108,12 +111,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const rain = new LogoRain(logoRainBox);
 
   // ——— چرخه باز/بسته پنل کارت‌ها + کنترل افکت‌ها ———
-  headerTrigger?.addEventListener('click', (e) => {
+  function togglePanel(e, control, focusOverride = null) {
     e.preventDefault();
-    clearTimeout(autoOpenTimer);
     if (isAnimating) return;
-    isExpanded ? collapsePanel() : expandPanel();
-  });
+    activeToggle = control || headerTrigger;
+    const focusFirst = focusOverride ?? e.detail === 0;
+    isExpanded ? collapsePanel(focusFirst) : expandPanel(focusFirst);
+  }
+  headerTrigger?.addEventListener('click', (e) => togglePanel(e, headerTrigger));
+  gateHint?.addEventListener('click', (e) => togglePanel(e, gateHint));
+  [headerTrigger, gateHint].forEach((control) => control?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') togglePanel(e, control, true);
+  }));
 
   function sortTopThenRight(wraps){
     return wraps
@@ -133,15 +142,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // حالت آغازین: پنل بسته → افکت‌های دعوت فعال
   activateTease();
 
-  // ——— باز شدن خودکار پنل پس از ۳ ثانیه در صورت عدم تعامل کاربر ———
-  const AUTO_OPEN_DELAY = 3000; // ms
-  const autoOpenTimer = setTimeout(() => {
-    if (!isExpanded && !isAnimating) expandPanel();
-  }, AUTO_OPEN_DELAY);
-
-  function expandPanel(){
+  function expandPanel(focusFirst = false){
     isAnimating = true; isExpanded = true;
     headerTrigger?.setAttribute('aria-expanded','true');
+    gateHint?.setAttribute('aria-expanded','true');
+    gateHint?.setAttribute('aria-hidden','true');
+    gateHint?.setAttribute('tabindex','-1');
+    panel?.setAttribute('aria-hidden','false');
+    if (panel) panel.inert = false;
     panel?.classList.remove('collapsed'); panel?.classList.add('expanded');
     body.classList.add('panel-opened');   // راهنمای کلیک محو شود
     setCardsFocusable(true);
@@ -160,12 +168,18 @@ document.addEventListener('DOMContentLoaded', () => {
       // پس از اتمام توالی ورود: پس‌زمینه فعال شود
       body.classList.add('bg-revealed');
       isAnimating = false;
+      if (focusFirst) container?.querySelector('.card')?.focus();
     }, total);
   }
 
-  function collapsePanel(){
+  function collapsePanel(returnFocus = false){
     isAnimating = true; isExpanded = false;
     headerTrigger?.setAttribute('aria-expanded','false');
+    gateHint?.setAttribute('aria-expanded','false');
+    gateHint?.removeAttribute('aria-hidden');
+    gateHint?.removeAttribute('tabindex');
+    panel?.setAttribute('aria-hidden','true');
+    if (panel) panel.inert = true;
     body.classList.remove('panel-opened');   // راهنمای کلیک دوباره نمایش داده شود
     setCardsFocusable(false);
 
@@ -182,6 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // پس از پایان جمع‌شدن: افکت‌های دعوت دوباره فعال شوند
       activateTease();
       isAnimating=false;
+      if (returnFocus) activeToggle?.focus();
     }, total);
   }
 
@@ -211,7 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // ——— دسترس‌پذیری کیبورد کارت‌ها: فوکوس و فعال‌سازی با Enter/Space ———
   // تا زمانی که پنل بسته است، کارت‌های نامرئی از ترتیب فوکوس خارج می‌مانند
   function setCardsFocusable(enabled){
-    container?.querySelectorAll('.card').forEach((card) => card.setAttribute('tabindex', enabled ? '0' : '-1'));
+    const cards = [...(container?.querySelectorAll('.card') || [])];
+    cards.forEach((card, index) => card.setAttribute('tabindex', enabled && index === 0 ? '0' : '-1'));
   }
   container?.querySelectorAll('.card').forEach((card) => {
     card.setAttribute('tabindex', '-1');
@@ -219,26 +235,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const alt = card.querySelector('img')?.getAttribute('alt');
     if (alt) card.setAttribute('aria-label', alt);
     card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); return; }
+      const cards = [...container.querySelectorAll('.card')];
+      const index = cards.indexOf(card);
+      let targetIndex = null;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') targetIndex = Math.min(cards.length - 1, index + 1);
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') targetIndex = Math.max(0, index - 1);
+      if (e.key === 'Home') targetIndex = 0;
+      if (e.key === 'End') targetIndex = cards.length - 1;
+      if (targetIndex !== null && cards[targetIndex]) {
+        e.preventDefault();
+        cards[targetIndex].focus();
+      }
     });
   });
 
   function buildMenu(items){
     const ul = document.createElement('ul');
+    ul.setAttribute('role', 'menu');
     items.forEach(item => {
       const li = document.createElement('li');
       const children = getIntentChildren(item);
       if (children.length){
-        const span = document.createElement('span'); span.textContent = item.title;
-        span.addEventListener('click', (e) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'menu-item';
+        button.setAttribute('role', 'menuitem');
+        button.setAttribute('aria-haspopup', 'menu');
+        button.setAttribute('aria-expanded', 'false');
+        button.textContent = item.title;
+        const childList = buildMenu(children);
+        childList.setAttribute('role', 'menu');
+        childList.hidden = true;
+        button.addEventListener('click', (e) => {
           e.stopPropagation();
-          ul.querySelectorAll('li.expanded').forEach(o => { if (o !== li) o.classList.remove('expanded'); });
-          li.classList.toggle('expanded');
+          ul.querySelectorAll('li.expanded').forEach(o => {
+            if (o === li) return;
+            o.classList.remove('expanded');
+            o.children[0]?.setAttribute('aria-expanded', 'false');
+            if (o.children[1]) o.children[1].hidden = true;
+          });
+          const opening = button.getAttribute('aria-expanded') !== 'true';
+          button.setAttribute('aria-expanded', String(opening));
+          childList.hidden = !opening;
+          li.classList.toggle('expanded', opening);
+          if (opening && e.detail === 0) childList.querySelector('[role="menuitem"]')?.focus();
         });
-        li.appendChild(span);
-        li.appendChild(buildMenu(children));
+        li.appendChild(button);
+        li.appendChild(childList);
       } else {
         const a = document.createElement('a');
+        a.setAttribute('role', 'menuitem');
         a.href = paymentUrlForIntent(item); a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = item.title;
         li.appendChild(a);
       }
@@ -247,12 +294,18 @@ document.addEventListener('DOMContentLoaded', () => {
     return ul;
   }
 
+  let activeMenuCard = null;
   function openMenuAt(e, items){
-    closeMenus();
+    closeMenus(false);
     const menu = document.createElement('div');
     menu.className = 'dropdown-menu';
     menu.appendChild(buildMenu(items));
+    menu.setAttribute('role', 'region');
+    menu.setAttribute('aria-label', 'گزینه‌های نیت');
     menu.addEventListener('pointerdown', ev => ev.stopPropagation());
+    menu.addEventListener('keydown', handleMenuKeydown);
+    activeMenuCard = e.target.closest('.card');
+    activeMenuCard?.setAttribute('aria-expanded', 'true');
     document.body.appendChild(menu);
     const r = menu.getBoundingClientRect();
     let left = e.clientX - r.width/2, top = e.clientY;
@@ -263,12 +316,61 @@ document.addEventListener('DOMContentLoaded', () => {
     menu.style.left = left + 'px';
     menu.style.top  = top  + 'px';
     requestAnimationFrame(() => menu.classList.add('show'));
+    if (e.detail === 0) menu.querySelector('[role="menuitem"]')?.focus();
   }
 
-  function closeMenus(){ document.querySelectorAll('.dropdown-menu').forEach(m => m.remove()); }
-  document.addEventListener('pointerdown', (ev) => { if (!ev.target.closest('.dropdown-menu')) closeMenus(); }, true);
-  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeMenus(); });
-  window.addEventListener('resize', closeMenus);
+  function closeMenus(restoreFocus = false){
+    document.querySelectorAll('.dropdown-menu').forEach(m => m.remove());
+    activeMenuCard?.setAttribute('aria-expanded', 'false');
+    const card = activeMenuCard;
+    activeMenuCard = null;
+    if (restoreFocus) card?.focus();
+  }
+
+  function handleMenuKeydown(ev) {
+    const current = ev.target.closest('[role="menuitem"]');
+    if (!current) return;
+    const list = current.parentElement?.parentElement;
+    const options = [...list.children]
+      .map(item => item.querySelector(':scope > [role="menuitem"]'))
+      .filter(Boolean);
+    const index = options.indexOf(current);
+    if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+      ev.preventDefault();
+      const next = ev.key === 'ArrowDown'
+        ? (index + 1) % options.length
+        : (index - 1 + options.length) % options.length;
+      options[next]?.focus();
+    } else if (ev.key === 'Home' || ev.key === 'End') {
+      ev.preventDefault();
+      options[ev.key === 'Home' ? 0 : options.length - 1]?.focus();
+    } else if ((ev.key === 'ArrowRight' || ev.key === 'ArrowLeft') && current.tagName === 'BUTTON') {
+      ev.preventDefault();
+      if (ev.key === 'ArrowRight' && current.getAttribute('aria-expanded') !== 'true') current.click();
+      else if (ev.key === 'ArrowLeft' && current.getAttribute('aria-expanded') === 'true') current.click();
+      else if (ev.key === 'ArrowLeft' && list.classList.contains('is-submenu')) {
+        const parentItem = list.parentElement;
+        const parent = parentItem?.parentElement?.querySelector(':scope > button[role="menuitem"]');
+        parentItem?.classList.remove('expanded');
+        list.hidden = true;
+        parent?.setAttribute('aria-expanded', 'false');
+        parent?.focus();
+      }
+    }
+  }
+
+  document.addEventListener('pointerdown', (ev) => { if (!ev.target.closest('.dropdown-menu')) closeMenus(false); }, true);
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key !== 'Escape') return;
+    if (document.querySelector('.dropdown-menu')) {
+      ev.preventDefault();
+      closeMenus(true);
+    } else if (isExpanded) {
+      ev.preventDefault();
+      collapsePanel(true);
+    }
+  });
+  window.addEventListener('resize', () => closeMenus(false));
 
   // Tooltip
   const tip = document.createElement('div'); tip.className = 'tooltip-pop'; document.body.appendChild(tip);
@@ -325,8 +427,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   modeButtons.forEach(btn => btn.addEventListener('click', () => setMode(btn.dataset.mode)));
 
-  function showControls(){ desktopLeft?.classList.remove('hide'); desktopRight?.classList.remove('hide'); mobileControls?.classList.remove('hide'); }
-  function hideControls(){ desktopLeft?.classList.add('hide'); desktopRight?.classList.add('hide'); mobileControls?.classList.add('hide'); }
+  function setControlsFocusable(enabled){
+    document.querySelectorAll('.controls-fade button').forEach(button => {
+      if (enabled) button.removeAttribute('tabindex');
+      else button.setAttribute('tabindex', '-1');
+    });
+    [desktopLeft, desktopRight, mobileControls].forEach(control => {
+      if (!control) return;
+      control.setAttribute('aria-hidden', String(!enabled));
+      control.inert = !enabled;
+    });
+  }
+  function showControls(){
+    desktopLeft?.classList.remove('hide'); desktopRight?.classList.remove('hide'); mobileControls?.classList.remove('hide');
+    setControlsFocusable(true);
+  }
+  function hideControls(){
+    desktopLeft?.classList.add('hide'); desktopRight?.classList.add('hide'); mobileControls?.classList.add('hide');
+    setControlsFocusable(false);
+  }
 
   bindTooltips();
 

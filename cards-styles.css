@@ -806,7 +806,26 @@ body.panel-opened .gate-hint {
   display: inline-block
 }
 
-.dropdown-menu li>span::after {
+.dropdown-menu li>button.menu-item {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  text-align: right;
+  cursor: pointer;
+}
+
+.dropdown-menu li>button.menu-item:focus-visible,
+.dropdown-menu a:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.dropdown-menu li>span::after,
+.dropdown-menu li>button.menu-item::after {
   content: '‹';
   display: inline-block;
   margin-right: 10px;
@@ -817,7 +836,8 @@ body.panel-opened .gate-hint {
   transition: transform .3s
 }
 
-.dropdown-menu li.expanded>span::after {
+.dropdown-menu li.expanded>span::after,
+.dropdown-menu li.expanded>button.menu-item::after {
   transform: rotate(-90deg)
 }
 
