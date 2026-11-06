@@ -21,11 +21,22 @@
   <a href="https://github.com/Mahdi-Arts/Basij-Tamin/issues/new">🐛 گزارش خطا</a>
 </p>
 
-<a href="https://mahdi-arts.github.io/Basij-Tamin/">
-  <img src="docs/screenshots/demo-flow.gif" alt="نمایش متحرک مسیر صفحهٔ آغازین تا انتخاب نیت و فرم پرداخت" width="820" />
-</a>
+<video
+  src="https://raw.githubusercontent.com/Mahdi-Arts/Basij-Tamin/main/docs/videos/demo-flow.mp4"
+  poster="docs/screenshots/payment.png"
+  width="820"
+  controls
+  muted
+  loop
+  playsinline
+  preload="metadata">
+  مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+</video>
 
-<p><sub>مسیر نمایشی: 🌿 صفحهٔ آغازین ← 🎯 انتخاب نیت ← 🧾 تکمیل اطلاعات ← 💳 پرداخت آزمایشی</sub></p>
+<p>
+  <a href="docs/videos/demo-flow.mp4">🎬 مشاهدهٔ ویدیوی کامل مسیر دمو</a><br />
+  <sub>ویدیو با اطلاعات کاملاً فرضی تهیه شده است: 🌿 صفحهٔ آغازین ← 🎯 انتخاب نیت ← 🧾 تکمیل اطلاعات ← 💳 پرداخت آزمایشی</sub>
+</p>
 
 </div>
 
@@ -132,7 +143,7 @@
 تصاویر زیر از نسخهٔ زندهٔ پروژه در نمای دسکتاپ `1440×900` تهیه شده‌اند. برای مشاهدهٔ هر صفحه در دمو، روی تصویر مربوط کلیک کنید.
 
 <div dir="rtl" align="center">
-  <sub>GIF مسیر کامل دمو در بنر بالای README قرار دارد؛ تصاویر زیر نمای ثابت هر صفحه را نشان می‌دهند.</sub>
+  <sub>ویدیوی مسیر کامل دمو در بالای README قرار دارد؛ تصاویر زیر نمای ثابت هر صفحه را نشان می‌دهند.</sub>
 </div>
 
 <table>
@@ -283,7 +294,8 @@ Basij-Tamin/
 │       └── payment-config.js  # تنظیمات عمومی اتصال backend
 ├── images/                    # کارت‌ها، لوگوها و تصاویر تزئینی
 ├── fonts/                     # فایل‌های Vazirmatn
-├── docs/screenshots/           # تصاویر صفحات و GIF مسیر کاربر
+├── docs/screenshots/           # تصاویر ثابت صفحات
+├── docs/videos/                # ویدیوی مسیر کامل دمو
 └── assets/vendor/             # دارایی محلی dotLottie
 ```
 
