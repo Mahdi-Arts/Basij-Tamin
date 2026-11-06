@@ -6,24 +6,15 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>درگاه ثبت خیر</title>
+  <link rel="icon" href="images/logo/icon.webp" type="image/webp" />
   <link rel="stylesheet" href="payment-styles.css" />
-  <script type="text/javascript">
-    (function (c, l, a, r, i, t, y) {
-      var h = (l.location && l.location.hostname) || c.location.hostname;
-      var isLocal = (c.location.protocol !== 'https:') || /^(localhost|127\.0\.0\.1)$/i.test(h);
-      if (isLocal) { c[a] = c[a] || function () { }; return; }
-      c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments) };
-      t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
-      y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
-    })(window, document, "clarity", "script", "ta5vnt8v6q");
-  </script>
 </head>
 
 <body>
   <!-- لینک پرش به محتوا برای دسترس‌پذیری -->
   <a href="#payment-form" class="skip-link" aria-label="پرش به فرم پرداخت">پرش به فرم</a>
 
-  <div class="pay-shell">
+  <div class="pay-shell" id="payment-page">
     <header class="pay-header">
       <h1 id="page-title">ثبت نیت خیر</h1>
     </header>
@@ -121,17 +112,20 @@
     </section>
   </div>
 
-  <div class="modal" id="thank-modal" role="dialog" aria-modal="true" aria-labelledby="thank-title">
-    <div class="modal-content thank-decor">
-      <h3 id="thank-title">سپاس از نیت ارزشمند شما</h3>
-      <p id="thank-message">هدایت به درگاه بانکی</p>
-      <button class="btn primary" id="redirect-btn" type="button">انتقال به درگاه بانکی</button>
+  <div class="modal" id="thank-modal" role="dialog" aria-modal="true" aria-labelledby="thank-title"
+    aria-describedby="thank-message" aria-hidden="true">
+    <div class="modal-content thank-decor" tabindex="-1">
+      <button class="modal-close" id="close-thank-modal" type="button" aria-label="بستن">×</button>
+      <h3 id="thank-title">ثبت درخواست پرداخت</h3>
+      <p id="thank-message">در حال آماده‌سازی درخواست پرداخت</p>
+      <button class="btn primary" id="redirect-btn" type="button">بستن</button>
     </div>
   </div>
 
-  <script src="src/js/utils.js"></script>
-  <script src="src/js/data.js"></script>
-  <script src="payment-scripts.js"></script>
+  <script src="src/js/utils.js?v=7.0.1"></script>
+  <script src="src/js/data.js?v=7.0.1"></script>
+  <script src="src/js/payment-config.js?v=7.0.3"></script>
+  <script src="payment-scripts.js?v=7.0.3"></script>
 </body>
 
 </html>

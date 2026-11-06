@@ -12,6 +12,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const desktopRight = document.getElementById('desktop-controls-right');
   const mobileControls = document.getElementById('mobile-controls');
   const logoRainBox = document.getElementById('logo-rain');
+  const cardCatalog = new Map((window.NIAT_CARDS || []).filter(intent => intent.id).map(intent => [intent.id, intent]));
+
+  const getIntentChildren = intent => {
+    if (Array.isArray(intent?.menu)) return intent.menu;
+    if (Array.isArray(intent?.submenu)) return intent.submenu;
+    return [];
+  };
+  const paymentUrlForIntent = intent => {
+    const params = new URLSearchParams({ cause: intent.cause });
+    return `payment-form.html?${params.toString()}`;
+  };
+  container?.querySelectorAll('.card').forEach(card => {
+    const intent = cardCatalog.get(card.dataset.intentId);
+    if (!intent) return;
+    const title = card.querySelector('.card-title');
+    const image = card.querySelector('img');
+    if (title) title.textContent = intent.title;
+    if (image) image.alt = intent.title;
+    card.setAttribute('aria-label', intent.title);
+  });
 
   setView(localStorage.getItem('cardViewMode') || 'small');
   setMode(localStorage.getItem('dayNightMode') || 'day');
@@ -170,23 +190,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = e.target.closest('.card');
     if (!card) return;
 
+    const intent = cardCatalog.get(card.dataset.intentId);
+    if (!intent) return;
+
     // پرواز آرام کبوترها
     pigeons.burstAt(e.clientX, e.clientY);
 
     // منوی اختصاصی کارت
-    const menuData = card.getAttribute('data-menu');
-    if (menuData){
-      let items = [];
-      try { items = JSON.parse(menuData); } catch { items = []; }
-      if (!items.length) return;
+    const items = getIntentChildren(intent);
+    if (items.length){
       e.stopPropagation();
       openMenuAt(e, items);
       return;
     }
 
     // لینک مستقیم کارت
-    const url = card.getAttribute('data-url');
-    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+    window.open(paymentUrlForIntent(intent), '_blank', 'noopener,noreferrer');
   });
 
   // ——— دسترس‌پذیری کیبورد کارت‌ها: فوکوس و فعال‌سازی با Enter/Space ———
@@ -208,7 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const ul = document.createElement('ul');
     items.forEach(item => {
       const li = document.createElement('li');
-      if (item.submenu && Array.isArray(item.submenu) && item.submenu.length){
+      const children = getIntentChildren(item);
+      if (children.length){
         const span = document.createElement('span'); span.textContent = item.title;
         span.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -216,10 +236,10 @@ document.addEventListener('DOMContentLoaded', () => {
           li.classList.toggle('expanded');
         });
         li.appendChild(span);
-        li.appendChild(buildMenu(item.submenu));
+        li.appendChild(buildMenu(children));
       } else {
         const a = document.createElement('a');
-        a.href = item.url || '#'; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = item.title;
+        a.href = paymentUrlForIntent(item); a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = item.title;
         li.appendChild(a);
       }
       ul.appendChild(li);

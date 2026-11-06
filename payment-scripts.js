@@ -3,7 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   // عناصر
   const params = new URLSearchParams(location.search);
-  const initialCause = params.get('cause') ? params.get('cause').replace(/_/g, ' ') : '';
+  const initialCauseParam = params.get('cause') ? params.get('cause').replace(/_/g, ' ') : '';
+  const resolveIntent = cause => typeof window.getIntentByCause === 'function' ? window.getIntentByCause(cause) : null;
+  const initialIntent = resolveIntent(initialCauseParam);
   const pageTitle = document.getElementById('page-title');
   const provinceSel = document.getElementById('province');
   const citySel = document.getElementById('city');
@@ -15,10 +17,90 @@ document.addEventListener('DOMContentLoaded', () => {
   const totalLine = document.querySelector('.total-line');
   const summary = document.querySelector('.summary');
   const payActions = document.querySelector('.pay-actions');
+  const pageShell = document.getElementById('payment-page');
+  const thankModal = document.getElementById('thank-modal');
+  const thankModalContent = thankModal?.querySelector('.modal-content');
+  const closeThankModalBtn = document.getElementById('close-thank-modal');
+  const redirectBtn = document.getElementById('redirect-btn');
+  const thankTitle = document.getElementById('thank-title');
+  const thankMessage = document.getElementById('thank-message');
+  const paymentConfig = window.PAYMENT_CONFIG || {};
 
   // ابزار
   const faNF = new Intl.NumberFormat('fa-IR');
   const listFa = new Intl.ListFormat('fa', { type: 'conjunction', style: 'long' });
+
+  // مودال: فوکوس محدود، Escape، بستن با پس‌زمینه و blur/inert صفحهٔ زیرین
+  const modalFocusableSelector = [
+    'a[href]',
+    'button:not([disabled])',
+    'input:not([disabled])',
+    'select:not([disabled])',
+    'textarea:not([disabled])',
+    '[tabindex]:not([tabindex="-1"])'
+  ].join(',');
+  let lastFocusedBeforeModal = null;
+  let modalAction = () => closeThankModal();
+  function setModalPageState(open) {
+    document.body.classList.toggle('modal-open', open);
+    if (!pageShell) return;
+    pageShell.classList.toggle('modal-blurred', open);
+    if ('inert' in pageShell) pageShell.inert = open;
+    if (open) pageShell.setAttribute('inert', '');
+    else pageShell.removeAttribute('inert');
+    pageShell.setAttribute('aria-hidden', open ? 'true' : 'false');
+  }
+  function getModalFocusables() {
+    return thankModal ? [...thankModal.querySelectorAll(modalFocusableSelector)].filter(el => !el.hidden && el.offsetParent !== null) : [];
+  }
+  function openThankModal() {
+    if (!thankModal) return;
+    lastFocusedBeforeModal = document.activeElement;
+    thankModal.classList.add('show');
+    thankModal.setAttribute('aria-hidden', 'false');
+    setModalPageState(true);
+    requestAnimationFrame(() => (closeThankModalBtn || thankModalContent || thankModal)?.focus());
+  }
+  function closeThankModal({ restoreFocus = true } = {}) {
+    if (!thankModal) return;
+    thankModal.classList.remove('show');
+    thankModal.setAttribute('aria-hidden', 'true');
+    setModalPageState(false);
+    if (restoreFocus && lastFocusedBeforeModal?.isConnected) lastFocusedBeforeModal.focus();
+  }
+  function handleThankModalKeydown(event) {
+    if (!thankModal?.classList.contains('show')) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeThankModal();
+      return;
+    }
+    if (event.key !== 'Tab') return;
+    const focusables = getModalFocusables();
+    if (!focusables.length) {
+      event.preventDefault();
+      thankModalContent?.focus();
+      return;
+    }
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (!thankModal.contains(document.activeElement)) {
+      event.preventDefault();
+      first.focus();
+    } else if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+  document.addEventListener('keydown', handleThankModalKeydown);
+  closeThankModalBtn?.addEventListener('click', () => closeThankModal());
+  redirectBtn?.addEventListener('click', () => modalAction());
+  thankModal?.addEventListener('click', event => {
+    if (event.target === thankModal) closeThankModal();
+  });
 
   // استان/شهر (پیوند وابسته)
   provinceSel.disabled = false;
@@ -60,18 +142,52 @@ document.addEventListener('DOMContentLoaded', () => {
     bouquet.style.width = totalW + 'px';
     flowers.forEach((el, i) => { el.style.left = (i * spacing) + 'px'; });
   }
-  const getIntentKeyFromRow = row => (row.querySelector('.intent-trigger')?.textContent || '').trim();
+  const getIntentKeyFromRow = row => row.dataset.intentCause || '';
+  const getIntentLabelFromRow = row => (row.querySelector('.intent-trigger')?.textContent || '').trim();
+  const getIntentRows = () => [...intentsWrap.querySelectorAll('.intent-row')];
+  const getRowAmount = row => parseAmount(row.querySelector('.amount-select'), row.querySelector('.custom-amount'));
+  const panelOutsideClosers = new WeakMap();
+  const panelTriggers = new WeakMap();
+  function removeOutsideCloser(panel) {
+    const closer = panelOutsideClosers.get(panel);
+    if (!closer) return;
+    document.removeEventListener('pointerdown', closer, true);
+    panelOutsideClosers.delete(panel);
+  }
+  function closePanelElement(panel, focusTarget = null) {
+    if (!panel) return;
+    removeOutsideCloser(panel);
+    panel.classList.remove('open');
+    panel.setAttribute('aria-hidden', 'true');
+    (panelTriggers.get(panel) || panel.previousElementSibling)?.setAttribute('aria-expanded', 'false');
+    if (focusTarget) focusTarget.focus();
+  }
+  function closeAllPanels() {
+    document.querySelectorAll('.intent-panel.open, .amount-panel.open').forEach(panel => closePanelElement(panel));
+  }
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !thankModal?.classList.contains('show')) closeAllPanels();
+  });
+  function removeFlowerIfUnused(key, excludedRow = null) {
+    if (!key) return;
+    const stillUsed = getIntentRows().some(row => row !== excludedRow && getIntentKeyFromRow(row) === key && getRowAmount(row) > 0);
+    if (!stillUsed) removeFlowerByKey(key);
+  }
   function highlightFlower(key) {
     const el = bouquet.querySelector(`.flower[data-key="${CSS.escape(key)}"]`);
     if (!el) return; el.classList.remove('bloom-pulse'); void el.offsetWidth; el.classList.add('bloom-pulse');
   }
   function removeFlowerByKey(key) {
     const el = bouquet.querySelector(`.flower[data-key="${CSS.escape(key)}"]`);
-    if (!el) return; el.classList.add('fade-out'); setTimeout(() => { el.remove(); layoutBouquet(); }, 420);
+    if (!el) return;
+    el.classList.add('fade-out');
+    setTimeout(() => {
+      if (el.isConnected && el.classList.contains('fade-out')) { el.remove(); layoutBouquet(); }
+    }, 420);
   }
   function ensureFlower(key) {
     let el = bouquet.querySelector(`.flower[data-key="${CSS.escape(key)}"]`);
-    if (el) return el;
+    if (el) { el.classList.remove('fade-out'); return el; }
     el = document.createElement('img'); el.className = 'flower'; el.setAttribute('data-key', key);
     el.src = 'images/decorations/narges3.webp'; el.alt = '';
     bouquet.insertBefore(el, bouquet.firstChild);
@@ -94,13 +210,20 @@ document.addEventListener('DOMContentLoaded', () => {
       if (k < 1) requestAnimationFrame(anim); else { fly.remove(); onDone?.(); }
     });
   }
+  const pendingFlowerKeys = new Set();
   function upsertFlowerForRow(row) {
     const key = getIntentKeyFromRow(row);
     if (!key || key === 'نیت را انتخاب کنید') return;
+    if (!row.isConnected || getRowAmount(row) <= 0) return;
     const existed = !!bouquet.querySelector(`.flower[data-key="${CSS.escape(key)}"]`);
-    if (existed) { highlightFlower(key); layoutBouquet(); return; }
+    if (existed || pendingFlowerKeys.has(key)) { highlightFlower(key); layoutBouquet(); return; }
+    pendingFlowerKeys.add(key);
     layoutBouquet();
-    flyFlowerFromRowToBouquet(row, () => { ensureFlower(key); layoutBouquet(); highlightFlower(key); });
+    flyFlowerFromRowToBouquet(row, () => {
+      pendingFlowerKeys.delete(key);
+      const stillUsed = getIntentRows().some(candidate => getIntentKeyFromRow(candidate) === key && getRowAmount(candidate) > 0);
+      if (stillUsed) { ensureFlower(key); layoutBouquet(); highlightFlower(key); }
+    });
   }
 
   // جای‌گذاری دسته‌گل میان «جمع مبلغ» و دکمه
@@ -147,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
           });
           btn.setAttribute('aria-expanded', 'true');
           subWrap.classList.add('open'); subWrap.setAttribute('aria-hidden', 'false');
-          setTimeout(() => rovingFocus(subWrap), 0);
+          setTimeout(() => rovingFocus(subWrap, btn), 0);
         }
         function closeSub() {
           btn.setAttribute('aria-expanded', 'false');
@@ -165,27 +288,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const leaf = document.createElement('button');
         leaf.type = 'button'; leaf.className = 'menu-item'; leaf.textContent = node.title;
         leaf.setAttribute('role', 'menuitem');
-        leaf.addEventListener('click', (e) => { e.stopPropagation(); onPick(node.title); });
+        leaf.addEventListener('click', (e) => { e.stopPropagation(); onPick(node); });
         li.append(leaf);
       }
       ul.appendChild(li);
     });
     return ul;
   }
-  function rovingFocus(panel) {
-    const items = [...panel.querySelectorAll('.menu-item')];
+  const rovingStates = new WeakMap();
+  function rovingFocus(panel, returnFocus = null) {
+    const items = [...panel.querySelectorAll(':scope > ul > li > .menu-item')];
     if (!items.length) return;
-    let idx = 0;
-    items.forEach((it, i) => { it.tabIndex = i === 0 ? 0 : -1; });
-    const setActive = i => { items[idx].tabIndex = -1; idx = (i + items.length) % items.length; items[idx].tabIndex = 0; items[idx].focus(); };
-    panel.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowDown') { e.preventDefault(); setActive(idx + 1); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(idx - 1); }
-      else if (e.key === 'Home') { e.preventDefault(); setActive(0); }
-      else if (e.key === 'End') { e.preventDefault(); setActive(items.length - 1); }
-      else if (e.key === 'Escape') { e.preventDefault(); const parentBtn = panel.previousElementSibling; panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); parentBtn?.setAttribute('aria-expanded', 'false'); parentBtn?.focus(); }
-    });
-    items[0].focus();
+    let state = rovingStates.get(panel);
+    if (!state) {
+      state = { items: [], index: 0, returnFocus };
+      state.onKeydown = event => {
+        if (!state.items.includes(event.target)) return;
+        if (event.key === 'ArrowDown') { event.preventDefault(); state.setActive(state.index + 1); }
+        else if (event.key === 'ArrowUp') { event.preventDefault(); state.setActive(state.index - 1); }
+        else if (event.key === 'Home') { event.preventDefault(); state.setActive(0); }
+        else if (event.key === 'End') { event.preventDefault(); state.setActive(state.items.length - 1); }
+        else if (event.key === 'Escape') { event.preventDefault(); closePanelElement(panel, state.returnFocus); }
+      };
+      panel.addEventListener('keydown', state.onKeydown);
+      rovingStates.set(panel, state);
+    }
+    state.items = items;
+    state.returnFocus = returnFocus || state.returnFocus;
+    state.index = 0;
+    state.setActive = index => {
+      state.items[state.index].tabIndex = -1;
+      state.index = (index + state.items.length) % state.items.length;
+      state.items[state.index].tabIndex = 0;
+      state.items[state.index].focus();
+    };
+    state.items.forEach((item, index) => { item.tabIndex = index === 0 ? 0 : -1; });
+    state.items[0].focus();
   }
   function smartPlace(panel, trigger) {
     const r = trigger.getBoundingClientRect();
@@ -198,8 +336,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ردیف نیت (منوها + دسته‌گل)
-  function createIntentRow(defaultIntent = '') {
+  function createIntentRow(defaultIntent = null) {
     const row = document.createElement('div'); row.className = 'intent-row';
+    const defaultIntentData = typeof defaultIntent === 'string' ? resolveIntent(defaultIntent) : defaultIntent;
+    const defaultCause = defaultIntentData?.cause || '';
+    const defaultLabel = defaultIntentData?.title || '';
+    row.dataset.intentCause = defaultCause;
+    let rowResizeObserver = null;
 
     // افزودن/حذف
     const addBtn = document.createElement('button'); addBtn.type = 'button'; addBtn.className = 'icon-btn add-intent'; addBtn.innerHTML = '<img src="images/logo/add.png" alt="+"/>';
@@ -209,8 +352,8 @@ document.addEventListener('DOMContentLoaded', () => {
     removeBtn.addEventListener('click', () => {
       if (removeBtn.hasAttribute('disabled')) return;
       const key = getIntentKeyFromRow(row);
-      row.dispatchEvent(new CustomEvent('remove-intent', { bubbles: true, detail: { key } }));
-      if (key) removeFlowerByKey(key);
+      if (key) removeFlowerIfUnused(key, row);
+      rowResizeObserver?.disconnect();
       row.remove();
       updateRemoveState(); updateTotalAndTitle(); updateScrollMode();
     });
@@ -218,13 +361,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // نیت
     const intentBox = document.createElement('div'); intentBox.className = 'intent-select';
     const intentTrigger = document.createElement('button');
-    intentTrigger.type = 'button'; intentTrigger.className = 'intent-trigger'; intentTrigger.textContent = defaultIntent || 'نیت را انتخاب کنید';
+    intentTrigger.type = 'button'; intentTrigger.className = 'intent-trigger'; intentTrigger.textContent = defaultLabel || 'نیت را انتخاب کنید';
+    intentTrigger.dataset.intentCause = defaultCause;
     intentTrigger.setAttribute('aria-haspopup', 'menu'); intentTrigger.setAttribute('aria-expanded', 'false');
 
     const intentPanel = document.createElement('div'); intentPanel.className = 'intent-panel'; intentPanel.setAttribute('role', 'menu'); intentPanel.setAttribute('aria-hidden', 'true');
     if (Array.isArray(NIAT_CARDS) && NIAT_CARDS.length) {
       intentPanel.appendChild(buildMenuList(NIAT_CARDS, (picked) => {
-        intentTrigger.textContent = picked;
+        const previousCause = getIntentKeyFromRow(row);
+        if (previousCause && previousCause !== picked.cause) {
+          removeFlowerIfUnused(previousCause, row);
+          resetAmountState();
+        }
+        intentTrigger.textContent = picked.title;
+        intentTrigger.dataset.intentCause = picked.cause;
+        row.dataset.intentCause = picked.cause;
         closePanel(intentTrigger, intentPanel, true);
         setAmountsEnabled(true);
         updateTotalAndTitle();
@@ -233,18 +384,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openPanel(trigger, panel) {
       // بستن سایر پنل‌ها
-      document.querySelectorAll('.intent-panel.open, .amount-panel.open').forEach(p => {
-        p.classList.remove('open'); p.setAttribute('aria-hidden', 'true'); p.previousElementSibling?.setAttribute('aria-expanded', 'false');
-      });
+      closeAllPanels();
       panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false'); trigger.setAttribute('aria-expanded', 'true');
-      smartPlace(panel, trigger); setTimeout(() => rovingFocus(panel), 0);
-      const closer = (ev) => { if (!panel.contains(ev.target) && ev.target !== trigger) { closePanel(trigger, panel, true); document.removeEventListener('pointerdown', closer, true); } };
+      panelTriggers.set(panel, trigger);
+      smartPlace(panel, trigger); setTimeout(() => rovingFocus(panel, trigger), 0);
+      const closer = ev => { if (!panel.contains(ev.target) && ev.target !== trigger) closePanel(trigger, panel, true); };
+      panelOutsideClosers.set(panel, closer);
       document.addEventListener('pointerdown', closer, true);
-      panel.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); closePanel(trigger, panel, true); } });
     }
     function closePanel(trigger, panel, returnFocus) {
-      panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); trigger.setAttribute('aria-expanded', 'false');
-      if (returnFocus) trigger.focus();
+      closePanelElement(panel, returnFocus ? trigger : null);
     }
 
     intentTrigger.addEventListener('click', (e) => { e.stopPropagation(); intentPanel.classList.contains('open') ? closePanel(intentTrigger, intentPanel, true) : openPanel(intentTrigger, intentPanel); });
@@ -279,12 +428,13 @@ document.addEventListener('DOMContentLoaded', () => {
     amountPanel.appendChild(amountUL);
 
     function openAmount() {
-      document.querySelectorAll('.intent-panel.open, .amount-panel.open').forEach(p => p.classList.remove('open'));
+      closeAllPanels();
       amountPanel.classList.add('open'); amountPanel.setAttribute('aria-hidden', 'false'); amountTrigger.setAttribute('aria-expanded', 'true');
-      smartPlace(amountPanel, amountTrigger); setTimeout(() => rovingFocus(amountPanel), 0);
-      const closer = (ev) => { if (!amountPanel.contains(ev.target) && ev.target !== amountTrigger) { closePanel(amountTrigger, amountPanel, true); document.removeEventListener('pointerdown', closer, true); } };
+      panelTriggers.set(amountPanel, amountTrigger);
+      smartPlace(amountPanel, amountTrigger); setTimeout(() => rovingFocus(amountPanel, amountTrigger), 0);
+      const closer = ev => { if (!amountPanel.contains(ev.target) && ev.target !== amountTrigger) closePanel(amountTrigger, amountPanel, true); };
+      panelOutsideClosers.set(amountPanel, closer);
       document.addEventListener('pointerdown', closer, true);
-      amountPanel.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); closePanel(amountTrigger, amountPanel, true); } });
     }
     amountTrigger.addEventListener('click', (e) => { e.stopPropagation(); amountPanel.classList.contains('open') ? closePanel(amountTrigger, amountPanel, true) : openAmount(); });
     amountTrigger.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); openAmount(); } });
@@ -310,19 +460,29 @@ document.addEventListener('DOMContentLoaded', () => {
       const clamped = Math.max(40, Math.min(avg, 72));
       custom.style.height = clamped + 'px';
     };
-    const ro = new ResizeObserver(syncCustomSize);
-    ro.observe(intentTrigger); ro.observe(amountTrigger);
+    rowResizeObserver = new ResizeObserver(syncCustomSize);
+    rowResizeObserver.observe(intentTrigger); rowResizeObserver.observe(amountTrigger);
+
+    function resetAmountState() {
+      amountSel.value = '';
+      custom.value = '';
+      row.classList.remove('custom-visible');
+      amountTrigger.textContent = 'مبلغ را انتخاب کنید';
+    }
 
     function setAmountsEnabled(enabled) {
       amountSel.disabled = !enabled; custom.disabled = !enabled;
-      if (!enabled) { amountSel.value = ''; custom.value = ''; row.classList.remove('custom-visible'); amountTrigger.textContent = 'مبلغ را انتخاب کنید'; }
+      if (!enabled) resetAmountState();
     }
-    setAmountsEnabled(!!defaultIntent && defaultIntent !== 'نیت را انتخاب کنید');
-
+    setAmountsEnabled(!!defaultCause);
     function handleAmountChange() {
       const isCustom = amountSel.value === 'custom';
       row.classList.toggle('custom-visible', isCustom);
-      if (isCustom) { custom.value = ''; custom.focus(); } else if (amountSel.value) { upsertFlowerForRow(row); }
+      if (isCustom) {
+        custom.value = '';
+        removeFlowerIfUnused(getIntentKeyFromRow(row), row);
+        custom.focus();
+      } else if (amountSel.value) upsertFlowerForRow(row);
       if (isCustom) syncCustomSize();
       updateTotalAndTitle(); updateScrollMode();
     }
@@ -331,6 +491,7 @@ document.addEventListener('DOMContentLoaded', () => {
       custom.value = raw ? (faNF.format(parseInt(raw, 10)) + ' تومان') : '';
       updateTotalAndTitle();
       if (raw) upsertFlowerForRow(row);
+      else removeFlowerIfUnused(getIntentKeyFromRow(row), row);
       updateScrollMode();
     }
     custom.addEventListener('focus', () => { custom.value = stripMoney(custom.value); });
@@ -339,10 +500,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // نصب اجزا
     row.append(addBtn, intentBox, amountHolder, customHolder, removeBtn);
-
-    // بستن سراسری با Escape
-    function closeAllPanels() { document.querySelectorAll('.intent-panel.open, .amount-panel.open').forEach(p => p.classList.remove('open')); }
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeAllPanels(); } });
 
     return row;
   }
@@ -361,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateTotalAndTitle() {
     let sum = 0;
     const rows = [...intentsWrap.querySelectorAll('.intent-row')];
-    const intents = uniqueInOrder(rows.map(r => r.querySelector('.intent-trigger')?.textContent || ''));
+    const intents = uniqueInOrder(rows.map(getIntentLabelFromRow));
     rows.forEach(r => { sum += parseAmount(r.querySelector('.amount-select'), r.querySelector('.custom-amount')); });
     grandTotal.textContent = formatIRR(sum);
     if (intents.length === 0) pageTitle.textContent = 'برای انجام ثبت خیرت، اطلاعات را تکمیل کن';
@@ -370,7 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // شروع
-  intentsWrap.appendChild(createIntentRow(initialCause || ''));
+  intentsWrap.appendChild(createIntentRow(initialIntent));
   updateRemoveState();
   updateTotalAndTitle();
   positionBouquet();
@@ -430,8 +587,114 @@ document.addEventListener('DOMContentLoaded', () => {
     el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', () => err(el, ''));
   });
 
-  form.addEventListener('submit', e => {
+  let paymentRequestInFlight = false;
+  function buildPaymentPayload(rows, normalizeMobile) {
+    const items = rows.map(row => ({
+      cause: getIntentKeyFromRow(row),
+      title: getIntentLabelFromRow(row),
+      amount: parseAmount(row.querySelector('.amount-select'), row.querySelector('.custom-amount'))
+    }));
+    const payload = {
+      amountUnit: 'toman',
+      amount: items.reduce((sum, item) => sum + item.amount, 0),
+      customer: {
+        fullName: fullname.value.trim(),
+        mobile: normalizeMobile,
+        province: provinceSel.value,
+        city: citySel.value
+      },
+      intents: items,
+      notes: document.getElementById('donation-notes')?.value.trim() || ''
+    };
+    if (paymentConfig.returnUrl) payload.returnUrl = String(paymentConfig.returnUrl);
+    return payload;
+  }
+  async function createPaymentRequest(payload) {
+    const endpointValue = String(paymentConfig.createPaymentUrl || '').trim();
+    if (!endpointValue) {
+      const error = new Error('gateway-not-configured');
+      error.code = 'gateway-not-configured';
+      throw error;
+    }
+    let endpoint;
+    try { endpoint = new URL(endpointValue, location.href); } catch {
+      const error = new Error('gateway-invalid-endpoint');
+      error.code = 'gateway-invalid-endpoint';
+      throw error;
+    }
+    if (!['http:', 'https:'].includes(endpoint.protocol) || (location.protocol === 'https:' && endpoint.protocol !== 'https:')) {
+      const error = new Error('gateway-insecure-endpoint');
+      error.code = 'gateway-insecure-endpoint';
+      throw error;
+    }
+    const timeoutMs = Math.max(1000, Number(paymentConfig.requestTimeoutMs) || 15000);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    let response;
+    try {
+      response = await fetch(endpoint.href, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+    } catch (error) {
+      const wrapped = new Error(error.name === 'AbortError' ? 'gateway-timeout' : 'gateway-network-error');
+      wrapped.code = error.name === 'AbortError' ? 'gateway-timeout' : 'gateway-network-error';
+      throw wrapped;
+    } finally {
+      clearTimeout(timeout);
+    }
+    if (!response.ok) {
+      const error = new Error('gateway-http-error');
+      error.code = 'gateway-http-error';
+      throw error;
+    }
+    let result;
+    try { result = await response.json(); } catch {
+      const error = new Error('gateway-invalid-response');
+      error.code = 'gateway-invalid-response';
+      throw error;
+    }
+    let redirect;
+    try { redirect = new URL(String(result?.redirectUrl || '')); } catch {
+      const error = new Error('gateway-invalid-redirect');
+      error.code = 'gateway-invalid-redirect';
+      throw error;
+    }
+    const allowedOrigins = Array.isArray(paymentConfig.allowedRedirectOrigins)
+      ? paymentConfig.allowedRedirectOrigins.map(origin => String(origin).replace(/\/$/, ''))
+      : [];
+    if (!allowedOrigins.includes(redirect.origin) || (location.protocol === 'https:' && redirect.protocol !== 'https:')) {
+      const error = new Error('gateway-untrusted-redirect');
+      error.code = 'gateway-untrusted-redirect';
+      throw error;
+    }
+    return redirect.href;
+  }
+  function showPaymentStatus(title, message, actionLabel = 'بستن', action = () => closeThankModal()) {
+    if (thankTitle) thankTitle.textContent = title;
+    if (thankMessage) thankMessage.textContent = message;
+    if (redirectBtn) redirectBtn.textContent = actionLabel;
+    modalAction = action;
+    openThankModal();
+  }
+  const paymentErrorMessages = {
+    'gateway-not-configured': 'اتصال درگاه بانکی هنوز برای این محیط تنظیم نشده است. پس از ثبت endpoint معتبر سازمان، پرداخت فعال می‌شود.',
+    'gateway-invalid-endpoint': 'نشانی سرویس پرداخت معتبر نیست و درخواست ارسال نشد.',
+    'gateway-insecure-endpoint': 'سرویس پرداخت در محیط رسمی باید فقط با HTTPS در دسترس باشد.',
+    'gateway-timeout': 'پاسخی از سرویس پرداخت دریافت نشد؛ لطفاً دوباره تلاش کنید.',
+    'gateway-network-error': 'ارتباط با سرویس پرداخت برقرار نشد؛ لطفاً اتصال شبکه را بررسی کنید.',
+    'gateway-http-error': 'سرویس پرداخت درخواست را نپذیرفت؛ لطفاً بعداً دوباره تلاش کنید.',
+    'gateway-invalid-response': 'پاسخ سرویس پرداخت قابل پردازش نیست.',
+    'gateway-invalid-redirect': 'سرویس پرداخت نشانی بازگشت معتبری ارسال نکرد.',
+    'gateway-untrusted-redirect': 'نشانی بازگشت درگاه در allowlist پروژه ثبت نشده است.'
+  };
+
+  form.addEventListener('submit', async e => {
     e.preventDefault();
+    if (paymentRequestInFlight) return;
     let ok = true;
     const mobileRaw = toEnDigits(mobile.value).replace(/[^\d]/g, '');
     const norm = (v) => { let x = v; if (x.startsWith('0098')) x = x.slice(4); else if (x.startsWith('98')) x = x.slice(2); if (!x.startsWith('0')) x = '0' + x; return x; };
@@ -444,11 +707,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const intentError = document.getElementById('intent-error');
     let intentMsg = '';
     for (const r of intentsWrap.querySelectorAll('.intent-row')) {
-      const trig = r.querySelector('.intent-trigger');
       const sel = r.querySelector('.amount-select');
       const cst = r.querySelector('.custom-amount');
-      const label = (trig?.textContent || '').trim();
-      if (!label || label === 'نیت را انتخاب کنید') { intentMsg = 'لطفاً ابتدا نیت را انتخاب کنید.'; break; }
+      const label = getIntentLabelFromRow(r);
+      if (!getIntentKeyFromRow(r) || !label || label === 'نیت را انتخاب کنید') { intentMsg = 'لطفاً ابتدا نیت را انتخاب کنید.'; break; }
       if (!parseAmount(sel, cst)) { intentMsg = `برای نیت «${label}» لطفاً مبلغ را انتخاب کنید.`; break; }
     }
     if (intentMsg) {
@@ -460,26 +722,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (!ok) return;
 
-    // افکت پرواز کبوترها (با احترام به کاهش حرکت)
-    if (!prefersReducedMotion) {
-      const b = (e.submitter || payBtn).getBoundingClientRect();
-      pigeons.burstAt(b.left + b.width / 2, b.top + b.height / 2);
-    }
-
     const rows = [...intentsWrap.querySelectorAll('.intent-row')];
-    const intents = uniqueInOrder(rows.map(r => r.querySelector('.intent-trigger')?.textContent || ''));
     const name = fullname.value.trim();
-    const joined = intents.length ? listFa.format(intents) : 'نیت خیر';
-    document.getElementById('thank-message').textContent =
-      intents.length <= 1
-        ? `${name} عزیز، از انتخاب نیت «${joined}» صمیمانه سپاسگزاریم؛ امید که به قبولی و برکت ختم شود.`
-        : `${name} نیک‌اندیش، از ثبت همزمان ${intents.length} نیت (${joined}) سپاسگزاریم؛ ان‌شاءالله مأجور باشید.`;
-    document.getElementById('thank-modal').classList.add('show');
-  });
-
-  // دکمه مودال
-  document.getElementById('redirect-btn').addEventListener('click', () => {
-    location.href = 'cards-form.html';
+    if (paymentConfig.mode === 'demo') {
+      const intents = uniqueInOrder(rows.map(getIntentLabelFromRow));
+      const joined = intents.length ? listFa.format(intents) : 'نیت خیر';
+      showPaymentStatus(
+        'تست پرداخت با موفقیت انجام شد',
+        intents.length <= 1
+          ? `${name} عزیز، مسیر آزمایشی نیت «${joined}» ثبت شد؛ برای ادامهٔ تست به صفحهٔ انتخاب نیت‌ها برمی‌گردید.`
+          : `${name} نیک‌اندیش، مسیر آزمایشی ${intents.length} نیت (${joined}) ثبت شد؛ برای ادامهٔ تست به صفحهٔ انتخاب نیت‌ها برمی‌گردید.`,
+        'بازگشت به انتخاب نیت‌ها',
+        () => location.assign('cards-form.html')
+      );
+      return;
+    }
+    if (paymentConfig.mode !== 'gateway') {
+      showPaymentStatus('حالت پرداخت تنظیم نشده است', 'حالت پرداخت پروژه معتبر نیست؛ برای تست از «demo» و برای انتشار رسمی از «gateway» استفاده کنید.');
+      return;
+    }
+    const normalizedMobile = norm(mobileRaw);
+    const payload = buildPaymentPayload(rows, normalizedMobile);
+    paymentRequestInFlight = true;
+    payBtn.disabled = true;
+    payBtn.setAttribute('aria-busy', 'true');
+    const originalButtonText = payBtn.textContent;
+    payBtn.textContent = 'در حال اتصال به درگاه…';
+    try {
+      const redirectUrl = await createPaymentRequest(payload);
+      if (!prefersReducedMotion) {
+        const b = (e.submitter || payBtn).getBoundingClientRect();
+        pigeons.burstAt(b.left + b.width / 2, b.top + b.height / 2);
+      }
+      showPaymentStatus('در حال انتقال به درگاه بانکی', `${name} عزیز، درخواست پرداخت شما آمادهٔ انتقال است.`, 'بستن');
+      location.assign(redirectUrl);
+    } catch (error) {
+      const message = paymentErrorMessages[error.code] || 'اتصال به درگاه انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.';
+      showPaymentStatus('اتصال به درگاه انجام نشد', message);
+    } finally {
+      paymentRequestInFlight = false;
+      payBtn.disabled = false;
+      payBtn.removeAttribute('aria-busy');
+      payBtn.textContent = originalButtonText;
+    }
   });
 
   const pigeons = new PigeonGlide();
