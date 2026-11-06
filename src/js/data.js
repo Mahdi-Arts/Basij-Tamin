@@ -39,11 +39,14 @@ const PROVINCES_CITIES_RAW = {
     "یزد": ["یزد", "میبد", "اردکان", "بافق", "مهریز", "ابرکوه", "تفت", "زارچ", "اشکذر", "شاهدیه", "مروست", "خضرآباد", "حمیدیا", "ندوشن", "هرات"]
 };
 
-/* ——— نیت‌های خیر (منوی چندسطحی) ——— */
+/* ——— نیت‌های خیر (منوی چندسطحی) ———
+ * id فقط برای اتصال کارت نمایشی به این منبع استفاده می‌شود؛
+ * cause نهایی از مسیر همین درخت ساخته می‌شود و در HTML تکرار نمی‌شود.
+ */
 const NIAT_CARDS_RAW = [
-    { "title": "قلک بیمه" },
+    { "id": "insurance-box", "title": "قلک بیمه" },
     {
-        "title": "نذر درمانی", "menu": [
+        "id": "medical-donation", "title": "نذر درمانی", "menu": [
             { "title": "داروهای بیماران سرطانی و صعب العلاج" },
             { "title": "کمک هزینه ناباروری" },
             { "title": "هزینه درمان بیماران ناتوان مالی" },
@@ -58,32 +61,32 @@ const NIAT_CARDS_RAW = [
         ]
     },
     {
-        "title": "نذر سازندگی", "menu": [
+        "id": "construction-donation", "title": "نذر سازندگی", "menu": [
             { "title": "ساخت مراکز درمانی" }, { "title": "ساخت مراکز بیمه‌ای" }, { "title": "ساخت همراه‌سرا" }
         ]
     },
-    { "title": "نذر نان" },
+    { "id": "bread-donation", "title": "نذر نان" },
     {
-        "title": "مواکب شهدای بسیج", "menu": [
+        "id": "martyrs-movakib", "title": "مواکب شهدای بسیج", "menu": [
             { "title": "موکب کربلا" }, { "title": "مواکب سراسر کشور" }, { "title": "چایخانه حضرت رضا (ع)" }
         ]
     },
-    { "title": "نذر قربانی" },
+    { "id": "sacrifice-donation", "title": "نذر قربانی" },
     {
-        "title": "کمک معیشتی و نذر مؤمنانه", "menu": [
+        "id": "livelihood-donation", "title": "کمک معیشتی و نذر مؤمنانه", "menu": [
             { "title": "نذر فرهنگی" }, { "title": "کمک به خرید جهیزیه" }, { "title": "کمک هزینه ازدواج" }, { "title": "کمک به جبهه مقاومت" }
         ]
     },
     {
-        "title": "وجوهات شرعی", "menu": [
+        "id": "religious-dues", "title": "وجوهات شرعی", "menu": [
             { "title": "خمس", "submenu": [{ "title": "خمس عام" }, { "title": "خمس سادات" }] },
             { "title": "کفاره", "submenu": [{ "title": "کفاره عام" }, { "title": "کفاره سادات" }] },
             { "title": "فطریه", "submenu": [{ "title": "فطریه عام" }, { "title": "فطریه سادات" }] },
             { "title": "خیرات اموات" }, { "title": "ثلث مال" }, { "title": "رد مظالم" }, { "title": "صدقه" }
         ]
     },
-    { "title": "آزادی زندانیان غیرعمد" },
-    { "title": "نذر عام" }
+    { "id": "prisoners-release", "title": "آزادی زندانیان غیرعمد" },
+    { "id": "general-donation", "title": "نذر عام" }
 ];
 
 // توابع پردازش (که از window.utils استفاده می‌کنند)
@@ -102,15 +105,34 @@ function buildProvinceCities() {
     return window.deepFreeze(ordered);
 }
 
+function appendIntentPath(path, title) {
+    const previous = path[path.length - 1];
+    if (previous && (title === previous || title.startsWith(previous + ' '))) {
+        return [...path.slice(0, -1), title];
+    }
+    return [...path, title];
+}
+
 function normalizeMenuTree(nodes = []) {
-    const walk = (arr = []) => arr.map(n => {
+    const walk = (arr = [], parentPath = []) => arr.map(n => {
         const title = window.toFaChars(n.title);
-        const node = { title };
-        if (Array.isArray(n.menu) && n.menu.length) node.menu = walk(n.menu);
-        if (Array.isArray(n.submenu) && n.submenu.length) node.submenu = walk(n.submenu);
+        const path = appendIntentPath(parentPath, title);
+        const node = { title, cause: path.join(' ') };
+        if (n.id) node.id = String(n.id);
+        if (Array.isArray(n.menu) && n.menu.length) node.menu = walk(n.menu, path);
+        if (Array.isArray(n.submenu) && n.submenu.length) node.submenu = walk(n.submenu, path);
         return node;
     });
     return walk(nodes);
+}
+
+function collectIntentLeaves(nodes = [], out = []) {
+    nodes.forEach(node => {
+        const children = node.menu || node.submenu;
+        if (Array.isArray(children) && children.length) collectIntentLeaves(children, out);
+        else out.push(Object.freeze({ title: node.title, cause: node.cause }));
+    });
+    return out;
 }
 
 // Expose globals
@@ -130,6 +152,11 @@ try {
         return key ? window.PROVINCES_CITIES[key] : [];
     };
     window.NIAT_CARDS = window.deepFreeze(normalizeMenuTree(NIAT_CARDS_RAW));
+    window.NIAT_INTENTS = window.deepFreeze(collectIntentLeaves(window.NIAT_CARDS));
+    window.getIntentByCause = (cause) => {
+        const normalized = window.toFaChars(cause).replace(/_/g, ' ');
+        return window.NIAT_INTENTS.find(intent => intent.cause === normalized) || null;
+    };
 } catch (e) {
     console.warn("Data initialization deferred (utils might not be ready)", e);
 }

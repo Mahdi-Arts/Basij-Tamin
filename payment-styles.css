@@ -64,6 +64,17 @@ body.scroll-allowed {
   overflow-y: auto;
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
+#payment-page.modal-blurred {
+  filter: blur(7px);
+  pointer-events: none;
+  user-select: none;
+  transition: filter .2s ease;
+}
+
 body::after {
   content: "";
   display: block;
@@ -774,13 +785,17 @@ body::after {
   inset: 0;
   background: rgba(0, 0, 0, .7);
   display: none;
+  visibility: hidden;
   align-items: center;
   justify-content: center;
-  z-index: 2147483646
+  z-index: 2147483646;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px)
 }
 
 .modal.show {
-  display: flex
+  display: flex;
+  visibility: visible
 }
 
 .modal-content {
@@ -792,7 +807,31 @@ body::after {
   text-align: center;
   box-shadow: 0 20px 60px rgba(0, 0, 0, .35);
   position: relative;
-  overflow: hidden
+  overflow: hidden;
+  outline: none
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  color: #1e5939;
+  background: rgba(255, 255, 255, .84);
+  border: 1px solid rgba(30, 89, 57, .25);
+  border-radius: 50%;
+  font: inherit;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer
+}
+
+.modal-close:focus-visible {
+  outline: 3px solid #f4b400;
+  outline-offset: 3px
 }
 
 .thank-decor::before,
@@ -897,6 +936,10 @@ body::after {
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
     scroll-behavior: auto !important
+  }
+
+  #payment-page.modal-blurred {
+    transition: none
   }
 }
 
