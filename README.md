@@ -31,10 +31,12 @@
 
 </div>
 
-https://github.com/user-attachments/assets/f1fedb4b-a06b-4a36-ba79-789a6bd989f9
-
 <div dir="rtl" align="center">
-  <sub>ویدیوی مسیر کامل دمو با اطلاعات فرضی: 🌿 ورود ← 🎯 انتخاب نیت ← 🧾 تکمیل اطلاعات ← 💳 پرداخت آزمایشی</sub>
+  <video controls preload="metadata" width="100%" aria-label="ویدیوی نهایی معرفی نسخه ۷">
+    <source src="docs/videos/basij-tamin-v7-final-introduction.mp4" type="video/mp4" />
+    مرورگر شما از پخش مستقیم ویدئو پشتیبانی نمی‌کند؛ <a href="docs/videos/basij-tamin-v7-final-introduction.mp4">مشاهده یا دریافت ویدئو</a>.
+  </video>
+  <sub>ویدیوی نهایی معرفی نسخهٔ ۷: 🌿 ورود ← 🎯 انتخاب نیت ← 🧾 تکمیل اطلاعات ← 💳 پرداخت آزمایشی</sub>
 </div>
 
 <p align="center">✨ ─── 🌿 ─── 🎯 ─── 🧾 ─── 💳 ─── ✨</p>
