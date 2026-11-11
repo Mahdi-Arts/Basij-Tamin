@@ -32,10 +32,10 @@
 </div>
 
 <div dir="rtl" align="center">
-  <video controls preload="metadata" width="100%" aria-label="ویدیوی نهایی معرفی نسخه ۷">
-    <source src="https://raw.githubusercontent.com/Mahdi-Arts/Basij-Tamin/main/docs/videos/basij-tamin-v7-final-introduction.mp4" type="video/mp4" />
-    مرورگر شما از پخش مستقیم ویدئو پشتیبانی نمی‌کند؛ <a href="docs/videos/basij-tamin-v7-final-introduction.mp4">مشاهده یا دریافت ویدئو</a>.
-  </video>
+  <a href="https://mahdi-arts.github.io/Basij-Tamin/video.html">
+    <img src="docs/videos/basij-tamin-v7-poster.jpg" alt="برای پخش ویدیوی نهایی معرفی نسخه ۷ کلیک کنید" width="100%" />
+  </a>
+  <p><strong>▶️ <a href="https://mahdi-arts.github.io/Basij-Tamin/video.html">پخش ویدیوی نهایی معرفی نسخهٔ ۷</a></strong> · <a href="docs/videos/basij-tamin-v7-final-introduction.mp4">دریافت فایل MP4</a></p>
   <sub>ویدیوی نهایی معرفی نسخهٔ ۷: 🌿 ورود ← 🎯 انتخاب نیت ← 🧾 تکمیل اطلاعات ← 💳 پرداخت آزمایشی</sub>
 </div>
 

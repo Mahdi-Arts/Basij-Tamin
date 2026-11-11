@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="پخش ویدیوی نهایی معرفی نسخه ۷ درگاه ثبت نیت خیر بسیج" />
+  <title>معرفی نهایی نسخهٔ ۷ | درگاه ثبت نیت خیر بسیج</title>
+  <link rel="icon" href="images/logo/icon.webp" />
+  <style>
+    @font-face {
+      font-family: Vazirmatn;
+      src: url("fonts/Vazirmatn-Regular.woff2") format("woff2");
+      font-display: swap;
+    }
+
+    :root {
+      color-scheme: dark;
+      --bg: #071d13;
+      --panel: rgba(15, 58, 36, 0.84);
+      --line: rgba(196, 230, 204, 0.2);
+      --text: #f4fbf4;
+      --muted: #c6d9c9;
+      --accent: #93d648;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background:
+        radial-gradient(circle at 15% 5%, rgba(147, 214, 72, 0.18), transparent 34rem),
+        linear-gradient(145deg, #06180f, var(--bg));
+      color: var(--text);
+      font-family: Vazirmatn, system-ui, sans-serif;
+    }
+
+    main {
+      width: min(1100px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    .back {
+      color: var(--muted);
+      text-decoration: none;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 42px 0 22px;
+    }
+
+    header img { width: 58px; height: 58px; object-fit: contain; }
+    h1 { margin: 0; font-size: clamp(1.35rem, 3vw, 2.1rem); }
+    header p { margin: 6px 0 0; color: var(--muted); }
+
+    .player-card {
+      padding: clamp(12px, 2vw, 24px);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--panel);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+    }
+
+    video {
+      display: block;
+      width: 100%;
+      max-height: 78vh;
+      border-radius: 16px;
+      background: #000;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 18px;
+      color: var(--muted);
+    }
+
+    .download {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #18320e;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    @media (max-width: 600px) {
+      main { width: min(100% - 20px, 1100px); padding-top: 20px; }
+      header { margin-top: 30px; }
+      .player-card { border-radius: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="back" href="./">← بازگشت به صفحهٔ اصلی پروژه</a>
+    <header>
+      <img src="images/logo/icon.webp" alt="لوگوی درگاه ثبت نیت خیر بسیج" />
+      <div>
+        <h1>معرفی نهایی نسخهٔ ۷</h1>
+        <p>درگاه ثبت نیت خیر بسیج · ویدیوی تدوین‌شده و اصلاح‌شده</p>
+      </div>
+    </header>
+
+    <section class="player-card" aria-label="پلیر ویدیوی معرفی نسخه ۷">
+      <video controls preload="metadata" playsinline poster="docs/videos/basij-tamin-v7-poster.jpg">
+        <source src="docs/videos/basij-tamin-v7-final-introduction.mp4" type="video/mp4" />
+        مرورگر شما از پخش ویدئو پشتیبانی نمی‌کند.
+      </video>
+      <div class="meta">
+        <span>نسخهٔ ۷.۰.۰ · مدت تقریبی ۵:۳۳</span>
+        <span>مسیر: ورود ← انتخاب نیت ← اطلاعات ← مبلغ ← پرداخت آزمایشی</span>
+      </div>
+      <a class="download" href="docs/videos/basij-tamin-v7-final-introduction.mp4" download>دریافت فایل MP4</a>
+    </section>
+  </main>
+</body>
+</html>
