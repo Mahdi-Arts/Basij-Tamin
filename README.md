@@ -411,11 +411,6 @@ git diff --check
 
 این پروژه به سفارش و همت هیأت اندیشه‌ورز بسیج سازمان تأمین اجتماعی توسعه یافته است.
 
-منابع استفاده‌شده:
-
-- [Vazirmatn](https://github.com/rastikerdar/vazirmatn)
-- [dotLottie Player](https://lottiefiles.com)
-
 <div dir="rtl" align="center">
 
 ✨ ساخته‌شده با دقت و عشق توسط مهدی باغبان‌پور
