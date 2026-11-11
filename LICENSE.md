@@ -1,6 +1,6 @@
 # مجوز اختصاصی پروژهٔ Basij-Tamin
 
-Copyright © 2026 Mahdi Baghbanpour. All rights reserved.
+Copyright © 2026 Mahdi Baghebanpour. All rights reserved.
 
 این مخزن عمومی است، اما عمومی‌بودن مخزن به‌معنای متن‌بازبودن یا اعطای مجوز استفاده از کد نیست.
 
