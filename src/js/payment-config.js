@@ -1,3 +1,5 @@
+/* Copyright © 2026 Mahdi Baghbanpour. Proprietary project; see ../../LICENSE.md. */
+
 /*
  * پیکربندی عمومی اتصال درگاه.
  * هرگز merchant key، secret یا token را در این فایل قرار ندهید.

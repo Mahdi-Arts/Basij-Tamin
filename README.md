@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/CSS3-responsive-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3 واکنش‌گرا" />
   <img src="https://img.shields.io/badge/JavaScript-vanilla-F7DF1E?style=for-the-badge&logo=javascript&logoColor=111827" alt="JavaScript بدون فریم‌ورک" />
   <img src="https://img.shields.io/badge/Persian-UI-1f6f43?style=for-the-badge" alt="رابط فارسی" />
-  <img src="https://img.shields.io/badge/license-MIT-6b7280?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="مجوز MIT" />
+  <img src="https://img.shields.io/badge/license-proprietary-7c3aed?style=for-the-badge&logo=guard&logoColor=white" alt="مجوز اختصاصی" />
 </p>
 
 <p>
@@ -376,7 +376,7 @@ git diff --check
 
 ## امنیت و حریم خصوصی
 
-- کلید پذیرنده، secret و token در frontend قرار نمی‌گیرند.
+- کلید پذیرنده، secret، token و اطلاعات حساس هرگز در frontend قرار نمی‌گیرند؛ چون هر فایل JavaScript، CSS، تصویر یا داده‌ای که مرورگر دریافت کند، برای کاربر قابل مشاهده و ذخیره‌سازی است.
 - endpoint پرداخت فقط با `POST` و payload JSON استفاده می‌شود.
 - پاسخ درگاه باید `redirectUrl` معتبر داشته باشد.
 - origin نشانی بازگشت با allowlist مقایسه می‌شود.
@@ -384,13 +384,22 @@ git diff --check
 - مقدار مبلغ و نیت‌ها باید در backend دوباره اعتبارسنجی شوند.
 - هیچ ابزار تحلیل خارجی در صفحات پروژه بارگذاری نمی‌شود.
 
+### مرز frontend و backend
+
+فرانت‌اند فقط باید رابط کاربر، داده‌های عمومی نیت‌ها و payload اولیه را آماده کند. منطق قابل اعتماد ساخت تراکنش، محاسبهٔ نهایی مبلغ، اعتبارسنجی کاربر، نگهداری merchant key، ارتباط با درگاه و بررسی callback باید در backend سازمان انجام شود؛ چون پنهان‌کردن این موارد در JavaScript یا CSS ممکن نیست و مرورگر کاربر به آن‌ها دسترسی دارد.
+
+secretهای backend باید در secret manager یا متغیرهای محیطی امن نگهداری شوند. هیچ secret واقعی، اطلاعات شخصی واقعی یا دادهٔ پرداخت واقعی نباید در این مخزن، تاریخچهٔ Git، فایل‌های دمو یا ویدیوی عمومی قرار گیرد.
+
+برای تنظیمات حساب GitHub نیز [SECURITY.md](SECURITY.md) را ببینید. فعال‌سازی 2FA، محافظت شاخهٔ `main`، Secret Scanning، Push Protection و Dependabot باید از پنل حساب GitHub انجام شود.
+
 حالت `demo` را پرداخت واقعی تلقی نکنید. پیش از انتشار رسمی، backend، sandbox provider، callback و verification باید جداگانه آزمون و تأیید شوند.
 
 ## مشارکت
 
-برای پیشنهاد تغییر:
+برای پیشنهاد تغییر، ابتدا اجازهٔ کتبی مالک پروژه را دریافت کنید. مشاهدهٔ عمومی مخزن و امکانات Fork در GitHub، مجوز استفاده یا بازنشر کد خارج از GitHub نیست.
 
-- مخزن را Fork کنید.
+پس از دریافت اجازه:
+
 - شاخه‌ای با نام مشخص بسازید:
 
    ```bash
@@ -403,9 +412,13 @@ git diff --check
 
 در تغییرات رابط کاربری، RTL، دسترس‌پذیری، موبایل و دسکتاپ را هم بررسی کنید. در تغییرات داده، یکتایی `id` و `cause` را کنترل کنید.
 
-## مجوز
+## مجوز و مالکیت
 
-در `package.json` مجوز پروژه `MIT` اعلام شده است. متن مجوز مستقل در ریشهٔ فعلی مخزن قرار ندارد؛ برای توزیع رسمی، افزودن فایل `LICENSE` پیشنهاد می‌شود.
+این پروژه و کد اختصاصی آن متعلق به **مهدی باغبان‌پور** است و تحت مجوز متن‌باز `MIT` منتشر نمی‌شود. شرایط استفاده در فایل [LICENSE.md](LICENSE.md) آمده است.
+
+مشاهدهٔ دمو و ویدیوی معرفی آزاد است؛ اما کپی، بازنشر، تغییر، استقرار، استفادهٔ تجاری یا استفاده از کد در پروژهٔ دیگر، خارج از امکانات GitHub و بدون اجازهٔ کتبی مالک مجاز نیست. اجزای شخص ثالث مانند فونت‌ها و کتابخانه‌های vendor تابع مجوزهای مستقل خود هستند.
+
+برای اعلام مالکیت و سابقهٔ پروژه، [NOTICE.md](NOTICE.md) را ببینید. این متن اطلاع‌رسانی عمومی است و جایگزین بررسی حقوقی متناسب با حوزهٔ قضایی قرارداد یا سازمان نمی‌شود.
 
 ## قدردانی
 

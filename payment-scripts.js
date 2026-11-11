@@ -1,3 +1,5 @@
+/* Copyright © 2026 Mahdi Baghbanpour. Proprietary project; see LICENSE.md. */
+
 document.addEventListener('DOMContentLoaded', () => {
   // احترام به تنظیم «کاهش حرکت» کاربر
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
