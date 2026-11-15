@@ -1,0 +1,121 @@
+/* به نام خداوند بخشنده مهربان */
+/* Basij-Tamin visual theme — inspired by observed public tamin.ir patterns. */
+
+:root {
+  --tamin-navy: #2f4697;
+  --tamin-navy-deep: #394fa5;
+  --tamin-night: #182356;
+  --tamin-cyan: #49cbd1;
+  --tamin-cyan-soft: #70d8df;
+  --tamin-teal: #329da3;
+  --tamin-green: #009432;
+  --tamin-ink: #101735;
+  --tamin-muted: #676767;
+  --tamin-wash: #f8faff;
+  --tamin-surface: #ffffff;
+  --tamin-border: #dde1ec;
+  --tamin-focus: #ffeba7;
+}
+
+body.tamin-theme {
+  direction: rtl;
+  font-family: 'Vazirmatn', Tahoma, sans-serif;
+  color: var(--tamin-ink);
+}
+
+body.tamin-theme :where(button, input, select, textarea) { font-family: inherit; }
+body.tamin-theme :where(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid #ffeb9c;
+  outline-offset: 3px;
+}
+
+body.tamin-theme.cards-page {
+  --green-grad-day: linear-gradient(145deg, var(--tamin-navy) 0%, var(--tamin-teal) 100%);
+  --green-grad-night: linear-gradient(145deg, var(--tamin-night) 0%, #29356f 100%);
+  --bg-solid: var(--tamin-navy);
+  background-color: var(--tamin-navy);
+}
+body.tamin-theme.cards-page:not(.night-mode) { background-color: var(--tamin-navy); color: var(--tamin-navy); }
+body.tamin-theme.cards-page.night-mode { --bg-solid: var(--tamin-night); background-color: var(--tamin-night); }
+body.tamin-theme.cards-page .title-frame {
+  border-color: rgba(99, 205, 218, .62);
+  background: rgba(10, 11, 21, .24);
+  box-shadow: 0 10px 28px rgba(10, 11, 21, .22);
+}
+body.tamin-theme.cards-page .gate-hint { color: #f8faff; text-shadow: 0 1px 4px rgba(10, 11, 21, .35); }
+body.tamin-theme.cards-page .card {
+  border-color: rgba(99, 205, 218, .54);
+  box-shadow: 0 12px 28px rgba(10, 11, 21, .24), 0 0 22px rgba(71, 199, 202, .12);
+}
+body.tamin-theme.cards-page .card:hover { box-shadow: 0 22px 44px rgba(10, 11, 21, .34), 0 0 34px rgba(71, 199, 202, .28); }
+body.tamin-theme.cards-page .card-overlay { background: linear-gradient(0deg, rgba(22, 23, 101, .96), rgba(22, 23, 101, 0)); }
+body.tamin-theme.cards-page .card-title { color: var(--tamin-navy); border: 1px solid rgba(71, 199, 202, .48); }
+body.tamin-theme.cards-page .credit-band { background: linear-gradient(0deg, rgba(14, 18, 74, .96), rgba(14, 18, 74, .38), transparent); }
+
+body.tamin-theme.payment-page {
+  color: var(--tamin-ink);
+  background: linear-gradient(145deg, var(--tamin-navy) 0%, var(--tamin-teal) 100%);
+}
+body.tamin-theme.payment-page .glass {
+  background: rgba(255, 255, 255, .96);
+  border-color: rgba(255, 255, 255, .72);
+  box-shadow: 0 22px 64px rgba(10, 11, 21, .22);
+}
+body.tamin-theme.payment-page .input-group label,
+body.tamin-theme.payment-page .total-line,
+body.tamin-theme.payment-page .brand-title { color: var(--tamin-navy); }
+body.tamin-theme.payment-page .field-wrapper input,
+body.tamin-theme.payment-page .field-wrapper select,
+body.tamin-theme.payment-page .notes-textarea { border-color: var(--tamin-border); background: var(--tamin-wash); }
+body.tamin-theme.payment-page .field-wrapper input:focus,
+body.tamin-theme.payment-page .field-wrapper select:focus,
+body.tamin-theme.payment-page .notes-textarea:focus {
+  border-color: var(--tamin-cyan);
+  box-shadow: 0 0 0 3px rgba(71, 199, 202, .18);
+}
+body.tamin-theme.payment-page .total-line { border-color: var(--tamin-cyan); }
+body.tamin-theme.payment-page .btn.primary {
+  background: linear-gradient(135deg, var(--tamin-navy), var(--tamin-teal));
+  box-shadow: 0 8px 22px rgba(22, 23, 101, .26);
+}
+body.tamin-theme.payment-page .trust-footer { background: var(--tamin-wash); }
+body.tamin-theme.payment-page .brand-mask { background-color: var(--tamin-navy); }
+
+body.tamin-theme.embed-page { background: linear-gradient(145deg, var(--tamin-wash), #e9f8fa); color: var(--tamin-ink); }
+body.tamin-theme.embed-page .organization-demo__header,
+body.tamin-theme.embed-page .organization-demo__content {
+  border-color: rgba(22, 23, 101, .12);
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 18px 48px rgba(22, 23, 101, .12);
+}
+body.tamin-theme.embed-page .organization-demo__header h1,
+body.tamin-theme.embed-page .organization-demo__content h2 { color: var(--tamin-navy); }
+body.tamin-theme.embed-page .organization-demo__header p,
+body.tamin-theme.embed-page .organization-demo__content p { color: var(--tamin-muted); }
+body.tamin-theme.embed-page .bt-intent-trigger {
+  border-color: rgba(71, 199, 202, .46);
+  background: linear-gradient(135deg, var(--tamin-navy), var(--tamin-teal));
+  box-shadow: 0 10px 24px rgba(22, 23, 101, .2);
+}
+body.tamin-theme.embed-page .bt-intent-widget { border-color: rgba(71, 199, 202, .28); box-shadow: 0 18px 48px rgba(22, 23, 101, .16); }
+
+body.tamin-theme.video-page {
+  background: radial-gradient(circle at 15% 5%, rgba(112, 216, 223, .18), transparent 34rem), linear-gradient(145deg, #111a48, var(--tamin-navy));
+}
+body.tamin-theme.video-page .back { color: #d9f8f8; }
+body.tamin-theme.video-page h1 { color: #f8faff; text-shadow: 0 2px 12px rgba(10, 11, 21, .34); }
+body.tamin-theme.video-page .player-card { border-color: rgba(99, 205, 218, .28); background: rgba(22, 23, 101, .84); box-shadow: 0 24px 70px rgba(10, 11, 21, .38); }
+body.tamin-theme.video-page .download { background: var(--tamin-cyan); color: var(--tamin-navy); }
+
+body.tamin-theme.intro-page {
+  --bg: var(--tamin-navy);
+  --bg2: var(--tamin-teal);
+  --fg: #f8faff;
+  --muted: #d9f8f8;
+  --ink: var(--tamin-navy);
+  background: radial-gradient(1200px 800px at 20% -10%, rgba(71, 199, 202, .18) 0%, transparent 60%),
+    radial-gradient(900px 700px at 120% 120%, rgba(47, 70, 151, .34) 0%, transparent 55%),
+    linear-gradient(180deg, var(--tamin-navy), var(--tamin-teal));
+}
+
+@media (prefers-reduced-motion: reduce) { body.tamin-theme * { scroll-behavior: auto; } }
