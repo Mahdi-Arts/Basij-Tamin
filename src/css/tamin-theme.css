@@ -51,6 +51,26 @@ body.tamin-theme.cards-page .card:hover { box-shadow: 0 22px 44px rgba(10, 11, 2
 body.tamin-theme.cards-page .card-overlay { background: linear-gradient(0deg, rgba(22, 23, 101, .96), rgba(22, 23, 101, 0)); }
 body.tamin-theme.cards-page .card-title { color: var(--tamin-navy); border: 1px solid rgba(71, 199, 202, .48); }
 body.tamin-theme.cards-page .credit-band { background: linear-gradient(0deg, rgba(14, 18, 74, .96), rgba(14, 18, 74, .38), transparent); }
+body.tamin-theme.cards-page .dropdown-menu {
+  background: rgba(248, 250, 255, .97);
+  border-color: rgba(73, 203, 209, .72);
+  box-shadow: 0 16px 36px rgba(24, 35, 86, .28);
+  color: var(--tamin-navy);
+}
+body.tamin-theme.cards-page .dropdown-menu li { color: var(--tamin-ink); }
+body.tamin-theme.cards-page .dropdown-menu li:hover,
+body.tamin-theme.cards-page .dropdown-menu li.expanded {
+  background: rgba(112, 216, 223, .22);
+  box-shadow: 0 0 0 2px rgba(73, 203, 209, .52);
+}
+body.tamin-theme.cards-page .dropdown-menu li > span::after,
+body.tamin-theme.cards-page .dropdown-menu li > button.menu-item::after { color: var(--tamin-teal); }
+body.tamin-theme.cards-page .dropdown-menu ul ul { border-right-color: rgba(47, 70, 151, .28); }
+body.tamin-theme.cards-page .tooltip-pop {
+  background: rgba(248, 250, 255, .96);
+  color: var(--tamin-navy);
+  box-shadow: 0 8px 18px rgba(24, 35, 86, .22), 0 0 0 1px rgba(73, 203, 209, .32);
+}
 
 body.tamin-theme.payment-page {
   color: var(--tamin-ink);
@@ -83,6 +103,37 @@ body.tamin-theme.payment-page .brand-mask { background-color: var(--tamin-navy);
 body.tamin-theme.payment-page .credit-inline .line {
   color: rgba(47, 70, 151, .82);
   text-shadow: none;
+}
+body.tamin-theme.payment-page .intent-row {
+  background: rgba(255, 255, 255, .96);
+  border-color: rgba(73, 203, 209, .28);
+}
+body.tamin-theme.payment-page .icon-btn {
+  border-color: rgba(47, 70, 151, .18);
+  color: var(--tamin-navy);
+}
+body.tamin-theme.payment-page .icon-btn:hover:not([disabled]) { background: rgba(112, 216, 223, .16); }
+body.tamin-theme.payment-page .intent-trigger,
+body.tamin-theme.payment-page .amount-trigger {
+  border-color: rgba(47, 70, 151, .22);
+  background: var(--tamin-wash);
+  color: var(--tamin-ink);
+}
+body.tamin-theme.payment-page .intent-trigger:focus,
+body.tamin-theme.payment-page .amount-trigger:focus {
+  outline-color: var(--tamin-cyan);
+}
+body.tamin-theme.payment-page .intent-panel,
+body.tamin-theme.payment-page .amount-panel {
+  background: rgba(255, 255, 255, .99);
+  border-color: rgba(73, 203, 209, .6);
+  box-shadow: 0 16px 34px rgba(24, 35, 86, .22);
+}
+body.tamin-theme.payment-page .menu-item { color: var(--tamin-ink); }
+body.tamin-theme.payment-page .menu-item:hover,
+body.tamin-theme.payment-page .menu-item[aria-current="true"] {
+  background: rgba(112, 216, 223, .2);
+  color: var(--tamin-navy);
 }
 
 body.tamin-theme.embed-page { background: linear-gradient(145deg, var(--tamin-wash), #e9f8fa); color: var(--tamin-ink); }
