@@ -72,7 +72,7 @@
 
 <table>
   <tr>
-    <td align="center" width="25%"><strong>🌱 ۴۰</strong><br /><sub>نیت نهایی</sub></td>
+    <td align="center" width="25%"><strong>🌱 ۴۱</strong><br /><sub>نیت نهایی</sub></td>
     <td align="center" width="25%"><strong>🎯 ۱۰</strong><br /><sub>کارت نیت</sub></td>
     <td align="center" width="25%"><strong>🗺️ ۳۱</strong><br /><sub>استان</sub></td>
     <td align="center" width="25%"><strong>🏙️ ۸۰۸</strong><br /><sub>گزینهٔ شهر</sub></td>
