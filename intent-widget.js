@@ -18,7 +18,7 @@
     ? new URL('./', currentScript.src).href
     : new URL('./', document.baseURI).href;
   const baseUrl = ensureTrailingSlash(currentScript?.dataset.baseUrl || scriptBase);
-  const dataVersion = currentScript?.dataset.dataVersion || '7.0.1';
+  const dataVersion = currentScript?.dataset.dataVersion || '7.1.0';
   const defaultPaymentUrl = currentScript?.dataset.paymentUrl || 'payment-form.html';
   const shared = {
     cssLoaded: false,
